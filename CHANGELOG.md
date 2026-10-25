@@ -3,6 +3,21 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.3
+
+### Added
+
+- `is_castle_host`: whether a host is on the castle domain (so the shared
+  theme cookie reaches it), compared ASCII case-insensitively, tolerant of a
+  trailing root dot and a port, and rejecting lookalikes such as
+  `evilmy-castle.net` or hosts with an empty label. New in this release;
+  each app adopts it in its own update, replacing its case-sensitive check.
+
+### Fixed
+
+- A test now pins that a present but invalid `theme` cookie blocks the
+  `theme_local` fallback (system wins), as documented.
+
 ## 0.1.2
 
 ### Added

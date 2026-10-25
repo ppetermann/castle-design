@@ -20,7 +20,7 @@ Add the crate as a git dependency, pinned to a tag:
 
 ```toml
 [dependencies]
-castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.1" }
+castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.2" }
 ```
 
 The repository is public, so the fetch needs no token in CI or a Docker build.
@@ -53,9 +53,16 @@ use castle_design::Theme;
 
 let theme = Theme::from_cookie_headers(cookie_header_values); // System without a cookie
 let set_cookie: String = Theme::Dark.set_cookie();            // for the switch's response
+// An app that once set a host-only `theme` cookie adds these to its pages:
+let migrate: Vec<String> = Theme::legacy_cookie_migration(cookie_header_values);
 // <html data-theme="{theme.data_theme()}">  (omit the attribute when None)
 // <meta name="color-scheme" content="{theme.color_scheme()}">
 ```
+
+A host-only fallback, where the shared cookie cannot be set, is named
+`theme_local` (`Theme::set_local_cookie`), never `theme`, so the two never
+collide; `from_cookie_headers` prefers `theme` and reads `theme_local` only
+when `theme` is absent.
 
 The stylesheet does the rest: every colour is a `light-dark()` token, so
 `data-theme` on `<html>` flips the whole page. `data-density="dense"` on

@@ -3,6 +3,23 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.2
+
+### Added
+
+- `THEME_LOCAL_COOKIE` (`theme_local`): the name of a host-only fallback theme
+  cookie, for an app off the castle domain or one that cannot set the shared
+  cookie, and `Theme::set_local_cookie` to write it.
+- `Theme::legacy_cookie_migration`: the `Set-Cookie` values that move a legacy
+  host-only `theme` cookie onto the shared one and expire it.
+
+### Fixed
+
+- `Theme::from_cookie_headers` no longer lets a legacy host-only `theme`
+  cookie win over the shared one: the shared `theme` is preferred over
+  `theme_local` wherever either sits in the headers, and of two `theme`
+  cookies the last valid one (the newer, shared one) wins.
+
 ## 0.1.1
 
 ### Fixed

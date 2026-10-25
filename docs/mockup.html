@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Castle design language — mockup</title>
+<style id="castle-css">
+/* ======================================================================
+   The mockup's copy of castle.css. assets/castle.css in this repository is
+   the canonical sheet; this one is scoped to the mockup's frames (.frame,
+   .screen) so phone and desktop frames on one page can both be live, and
+   carries the app accents the screens need.
+
+   Sections: 1 tokens · 2 base · 3 backdrop · 4 shell (top bar, tabs, bottom
+   bar, sidebar, home link, theme switch) · 5 surfaces (tile, card, panel)
+   · 6 text pieces · 7 status (dot, badge, note, toast) · 8 controls
+   (button, switch, inputs, segmented, slider) · 9 lists and tables ·
+   10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   13 empty state, pager, code/log · 14 motion.
+
+   Every colour is a token, written once for both themes through
+   light-dark(). An app sets <html data-theme="light|dark"> to override the
+   system, nothing for "system". <html data-density="dense"> switches the
+   type scale and control heights for mouse-and-keyboard admin screens.
+
+   In this mockup the breakpoints are written as @container queries so the
+   phone and desktop frames on one page can both be live; in an app they are
+   the same values as @media queries (phone: width < 48rem; sidebar collapse:
+   width < 56rem; ultra-wide: width >= 100rem).
+   ====================================================================== */
+
+/* ---------- 1. tokens ---------- */
+:root, .frame {
+  color-scheme: light dark;
+
+  /* surfaces */
+  --bg:            light-dark(#eef1f6, #0c0f15);
+  --bg-sunken:     light-dark(#e4e8ef, #07090d);
+  --surface:       light-dark(#ffffff, #161a22);
+  --surface-2:     light-dark(#eef1f6, #1e232d);
+  --glass:         light-dark(rgb(228 233 240 / .46), rgb(20 24 32 / .46));
+  --glass-strong:  light-dark(rgb(248 250 252 / .8), rgb(32 37 49 / .8));
+  --line:          light-dark(rgb(20 30 50 / .1), rgb(255 255 255 / .08));
+  --line-strong:   light-dark(rgb(20 30 50 / .22), rgb(255 255 255 / .18));
+  --hover:         light-dark(rgb(20 30 50 / .05), rgb(255 255 255 / .06));
+  --scrim:         light-dark(rgb(16 24 40 / .35), rgb(0 0 0 / .55));
+
+  /* ink */
+  --text:          light-dark(#141821, #e8ebf1);
+  --text-soft:     light-dark(#353c4a, #c3c9d4);
+  --muted:         light-dark(#5a6473, #9aa3b2);
+
+  /* action */
+  --accent:          light-dark(#2b59c3, #7ea6ff);
+  --accent-text:     light-dark(#2450b0, #9dbbff);
+  --accent-contrast: light-dark(#ffffff, #0b1020);
+  --accent-soft:     color-mix(in srgb, var(--accent) 14%, transparent);
+  --ring:            0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
+
+  /* status: the vivid value for dots and fills, the -text value for words */
+  --ok:        light-dark(#16a34a, #22c55e);  --ok-text:   light-dark(#15803d, #4ade80);
+  --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#b45309, #fdba74);
+  --err:       light-dark(#dc2626, #f87171);  --err-text:  light-dark(#b91c1c, #fca5a5);
+  --info:      light-dark(#1c549b, #86b6ef);
+
+  /* the castle behind the page: a wash over the image carries the theme */
+  --art-tint:  light-dark(rgb(238 241 246 / .42), rgb(12 15 21 / .55));
+
+  /* depth */
+  --shadow-1: light-dark(0 1px 2px rgb(20 30 60 / .06), 0 1px 2px rgb(0 0 0 / .3));
+  --shadow-2: light-dark(0 4px 16px rgb(20 30 60 / .06), 0 4px 16px rgb(0 0 0 / .25));
+  --shadow:   var(--shadow-1), var(--shadow-2);
+  --shadow-lg-1: light-dark(0 2px 4px rgb(20 30 60 / .08), 0 2px 4px rgb(0 0 0 / .35));
+  --shadow-lg-2: light-dark(0 12px 32px rgb(20 30 60 / .14), 0 12px 32px rgb(0 0 0 / .45));
+  --shadow-lg: var(--shadow-lg-1), var(--shadow-lg-2);
+
+  /* shape, space */
+  --r-s: 6px; --r-m: 10px; --r-l: 16px; --r-pill: 999px;
+  --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem;
+
+  /* type: comfortable scale (home, lights) */
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Liberation Sans", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --t-xs: .8125rem; --t-s: .875rem; --t-m: 1rem; --t-l: 1.125rem; --t-xl: 1.375rem; --t-2xl: 1.75rem;
+  --t-hero: clamp(1.75rem, 4cqw, 2.5rem);
+  --tap: 2.5rem;            /* every control, with a mouse */
+  --nav-h: 3.25rem;         /* top bar */
+  --tabbar: 3.5rem;         /* bottom bar on a phone */
+  --page: 72rem;            /* content width */
+  --card-min: 17rem;        /* a tile in a grid */
+  --nav-w: 14.5rem;         /* a sidebar */
+}
+@media (pointer: coarse) { :root, .frame { --tap: 2.75rem; } }
+
+/* dense: admin screens for a mouse and keyboard (maia, llm-proxy) */
+[data-density="dense"] {
+  --t-xs: .75rem; --t-s: .8125rem; --t-m: .875rem; --t-l: 1rem; --t-xl: 1.25rem; --t-2xl: 1.5rem;
+  --t-hero: 1.5rem;
+  --tap: 2.25rem;
+  --page: 80rem;
+}
+@media (pointer: coarse) { [data-density="dense"] { --tap: 2.75rem; } }
+
+/* app accents: tokens only one app needs, declared beside the shared ones */
+.app-lights { --on: #f5a623; --kelvin: #f0b35a; --ink-dark: #14171d; --ink-light: #ffffff; }
+.app-maia   { --brand: light-dark(#c8102e, #e0263c); --brand-text: light-dark(#b00e28, #ff6b78); --brand-soft: color-mix(in srgb, var(--brand) 14%, transparent); }
+
+/* ---------- 2. base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+.screen { background: var(--bg); color: var(--text); font: var(--t-m)/1.5 var(--font); -webkit-font-smoothing: antialiased; }
+.screen a { color: var(--accent-text); text-underline-offset: .15em; }
+.screen h1, .screen h2, .screen h3 { margin: 0; line-height: 1.25; overflow-wrap: anywhere; }
+.screen h1 { font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; }
+.screen h2 { font-size: var(--t-l); font-weight: 650; }
+.screen h3 { font-size: var(--t-m); font-weight: 600; }
+.screen p { margin: 0 0 var(--s3); }
+.screen code, .screen pre, .screen kbd { font-family: var(--mono); font-size: .9em; }
+.screen :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--r-s); }
+.screen svg.icon { width: 1.25rem; height: 1.25rem; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.muted { color: var(--muted); }
+.soft { color: var(--text-soft); }
+.num { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+main.page { position: relative; z-index: 1; max-width: var(--page); margin: 0 auto; padding: var(--s5) var(--s4) calc(var(--s6) + var(--tabbar-pad, 0px)); }
+main.page.hero { padding-top: clamp(2rem, 8cqh, 5rem); }   /* home: room above the cards */
+.screen section { margin: 0 0 var(--s5); }
+
+/* ---------- 3. backdrop ---------- */
+/* The castle, fixed behind everything, fading in from the top so the bar
+   and the title sit on plain background. --art-tint washes it toward the
+   theme's bg. Dense screens get it fainter (.quiet) or not at all. */
+.backdrop { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.backdrop::before { content: ""; position: absolute; inset: 0; background: var(--castle) 65% bottom / cover no-repeat;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 45%); mask-image: linear-gradient(to bottom, transparent 0%, #000 45%); }
+.backdrop::after { content: ""; position: absolute; inset: 0; background: var(--art-tint); }
+.backdrop.quiet::before { opacity: .45; }
+.backdrop.quiet::after { background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.backdrop.off { display: none; }
+
+/* ---------- 4. shell ---------- */
+.topbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: var(--s4); min-height: var(--nav-h); padding: 0 var(--s4);
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.topbar .brand { display: flex; align-items: center; gap: var(--s2); font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -.01em; white-space: nowrap; }
+.topbar .spacer { flex: 1; }
+.topbar .side { display: flex; align-items: center; gap: var(--s2); }
+/* the way back to the castle: first in every app's bar, never inside a menu */
+.home-link { display: inline-flex; align-items: center; gap: var(--s2); min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--r-pill);
+  color: var(--text-soft); text-decoration: none; font-weight: 500; }
+.home-link:hover { background: var(--hover); color: var(--text); }
+.topbar .home-link { margin-right: var(--s2); padding-right: var(--s4); border-right: 1px solid var(--line); border-radius: 0; }
+/* top tabs: the current one carries an accent line */
+nav.tabs { display: flex; align-items: stretch; gap: var(--s1); align-self: stretch; }
+nav.tabs > a { display: flex; align-items: center; gap: var(--s2); padding: 0 var(--s3); color: var(--muted); text-decoration: none; font-weight: 500;
+  border-bottom: 2px solid transparent; border-top: 2px solid transparent; white-space: nowrap; }
+nav.tabs > a:hover { color: var(--text); }
+nav.tabs > a[aria-current="page"] { color: var(--accent-text); border-bottom-color: var(--accent); }
+nav.tabs .count { min-width: 1.25rem; padding: 0 .35rem; border-radius: var(--r-pill); background: var(--err); color: #fff; font-size: var(--t-xs); font-weight: 700; line-height: 1.25rem; text-align: center; }
+nav.tabs > a.more .caret { display: inline-block; width: 0; height: 0; border: 4px solid transparent; border-top-color: currentColor; border-bottom: 0; margin-top: 2px; }
+/* round and pill buttons in the bar (home: edit, settings, theme) */
+.icon-btn { display: inline-grid; place-items: center; width: calc(var(--tap) - .125rem); height: calc(var(--tap) - .125rem); padding: 0; border: 1px solid var(--line); border-radius: 50%;
+  background: var(--glass); color: var(--muted); cursor: pointer; }
+.icon-btn:hover { color: var(--text); }
+.icon-btn[aria-pressed="true"], .icon-btn.open { background: var(--glass-strong); color: var(--accent-text); box-shadow: var(--shadow); }
+.icon-btn svg { width: 1rem; height: 1rem; }
+.pill-btn { height: calc(var(--tap) - .125rem); padding: 0 var(--s4); border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--glass); color: var(--muted); font: inherit; font-size: var(--t-s); cursor: pointer; }
+.pill-btn:hover { color: var(--text); }
+.pill-btn[aria-pressed="true"] { background: var(--glass-strong); color: var(--accent-text); box-shadow: var(--shadow); }
+/* the theme switch: one pill, three round buttons, the chosen one lifted */
+.theme-switch { display: inline-flex; gap: 2px; margin: 0; padding: 2px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--glass); }
+.theme-switch button { display: grid; place-items: center; width: 2rem; height: 2rem; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; }
+.theme-switch button:hover { color: var(--text); }
+.theme-switch button[aria-pressed="true"] { background: var(--glass-strong); color: var(--accent-text); box-shadow: var(--shadow); }
+.theme-switch svg { width: 1rem; height: 1rem; }
+/* user / more menu */
+.menu { position: absolute; right: 0; top: calc(100% + var(--s1)); z-index: 20; min-width: 12rem; display: grid; padding: var(--s2);
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: var(--r-m); box-shadow: var(--shadow-lg); }
+.menu a, .menu button { display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); padding: 0 var(--s3); border: 0; border-radius: var(--r-s); background: none; color: var(--text); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.menu a:hover, .menu button:hover { background: var(--hover); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: var(--s2) 0; }
+.menu .who { padding: var(--s2) var(--s3); color: var(--muted); font-size: var(--t-xs); margin: 0; }
+/* a sidebar (maia): glass over the castle, the current item marked by the app's brand colour */
+.sidenav { position: absolute; top: 0; bottom: 0; left: 0; z-index: 10; width: var(--nav-w); display: flex; flex-direction: column; overflow-y: auto;
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-right: 1px solid var(--line); }
+.sidenav .brand { display: flex; align-items: center; gap: var(--s3); padding: var(--s4); color: var(--text); text-decoration: none; }
+.sidenav .brand-name { display: block; font-size: var(--t-l); font-weight: 700; letter-spacing: .04em; line-height: 1.2; }
+.sidenav .brand-sub { display: block; font-size: var(--t-xs); color: var(--muted); }
+.sidenav .nav-h { margin: 0; padding: var(--s4) var(--s4) var(--s1); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.sidenav ul { list-style: none; margin: 0; padding: 0 var(--s2); }
+.nav-link { position: relative; display: flex; align-items: center; gap: var(--s3); min-height: var(--tap); padding: 0 var(--s3); border-radius: var(--r-s); color: var(--text-soft); font-weight: 500; text-decoration: none; }
+.nav-link:hover { background: var(--hover); color: var(--text); }
+.nav-link svg.icon { color: var(--muted); width: 1.125rem; height: 1.125rem; }
+.nav-link[aria-current="page"] { background: var(--brand-soft, var(--accent-soft)); color: var(--text); font-weight: 600; }
+.nav-link[aria-current="page"] svg.icon { color: var(--brand-text, var(--accent-text)); }
+.nav-link[aria-current="page"]::before { content: ""; position: absolute; left: calc(var(--s2) * -1); top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--brand, var(--accent)); }
+.nav-link .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nav-badge { min-width: 1.25rem; height: 1.25rem; padding: 0 .375rem; display: grid; place-items: center; border-radius: var(--r-pill); background: var(--err); color: #fff; font-size: var(--t-xs); font-weight: 700; }
+.sidenav-foot { margin-top: auto; padding: var(--s4); display: flex; flex-direction: column; gap: var(--s3); border-top: 1px solid var(--line); }
+.with-sidenav main.page { margin-left: var(--nav-w); max-width: calc(var(--page) + var(--nav-w)); padding-left: var(--s6); padding-right: var(--s6); }
+.appbar { display: none; }
+.avatar { width: 2.5rem; height: 2.5rem; flex: none; border-radius: 50%; object-fit: cover; display: grid; place-items: center; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #c8102e, #7a0a1c); box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--feel, var(--brand)); }
+.avatar.lg { width: 5.5rem; height: 5.5rem; font-size: 1.75rem; box-shadow: 0 0 0 3px var(--surface), 0 0 0 6px var(--feel, var(--brand)); }
+.avatar.sm { width: 1.75rem; height: 1.75rem; font-size: .75rem; box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--feel, var(--brand)); }
+.feel-pos-1 { --feel: light-dark(#7aa2e3, #3f6fbd); }
+/* the page's head: title, lead, actions to the right */
+.page-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--s2) var(--s4); margin: 0 0 var(--s5); }
+.page-head .lead { margin: 0; color: var(--text-soft); max-width: 70ch; flex: 1 1 100%; }
+.page-head .actions { display: flex; gap: var(--s2); margin: 0; }
+.crumb { display: inline-flex; align-items: center; gap: var(--s1); min-height: var(--tap); color: var(--muted); text-decoration: none; font-size: var(--t-s); }
+.crumb:hover { color: var(--text); }
+
+/* phone: the top bar keeps brand, home and the side; the tabs move to a bottom bar under the thumb */
+@container frame (max-width: 47.99rem) {
+  .screen { --tabbar-pad: calc(var(--tabbar) + env(safe-area-inset-bottom, 0px)); }
+  .topbar .home-link { border-right: 0; padding: 0 var(--s2); margin: 0; }
+  .topbar .home-link span { display: none; }
+  nav.tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; gap: 0; height: var(--tabbar); padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--line); }
+  nav.tabs > a { flex: 1 1 0; min-width: 0; flex-direction: column; justify-content: center; gap: 2px; padding: 0; font-size: .6875rem; border-bottom: 0; position: relative; }
+  nav.tabs > a[aria-current="page"] { border-top-color: var(--accent); }
+  nav.tabs svg.icon { width: 1.5rem; height: 1.5rem; }
+  nav.tabs .count { position: absolute; top: .3rem; left: calc(50% + .35rem); }
+  nav.tabs > a.more .caret { display: none; }
+  .topbar .theme-switch { display: none; }           /* lives in the More menu on a phone */
+  main.page { padding-top: var(--s4); }
+  .screen h1 { font-size: var(--t-xl); }
+  main.page.hero { padding-top: var(--s5); }
+}
+/* narrow: the sidebar becomes a drawer behind a menu button in an app bar */
+@container frame (max-width: 55.99rem) {
+  .with-sidenav .sidenav { display: none; }
+  .with-sidenav main.page { margin-left: 0; padding-left: var(--s4); padding-right: var(--s4); max-width: var(--page); }
+  .appbar { display: flex; position: sticky; top: 0; z-index: 10; align-items: center; gap: var(--s2); min-height: var(--nav-h); padding: 0 var(--s2);
+    background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .appbar-title { flex: 1; min-width: 0; font-size: var(--t-l); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+/* ultra-wide: the page grows with the screen instead of leaving margins */
+@container frame (min-width: 100rem) {
+  main.page { max-width: max(var(--page), 80cqw); }
+  .card-grid { --card-min: 20rem; }
+}
+
+/* ---------- 5. surfaces ---------- */
+/* .tile: a glass card you can tap (home's app card; a room on lights) */
+.tile { display: flex; flex-direction: column; gap: var(--s3); height: 100%; padding: 1.1rem 1.2rem 1.2rem; border: 1px solid var(--line); border-radius: var(--r-l);
+  background: var(--glass); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); box-shadow: var(--shadow); color: inherit; text-decoration: none;
+  transition: background .2s, border-color .2s, box-shadow .2s, transform .2s; }
+a.tile:hover, a.tile:focus-visible { background: var(--glass-strong); border-color: color-mix(in srgb, var(--accent) 45%, transparent); box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.tile .head { display: flex; align-items: center; gap: .85rem; }
+.tile .tile-icon { flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: var(--r-m); font-size: 1.35rem; font-weight: 700; line-height: 1;
+  background: light-dark(hsl(var(--hue) 60% 92%), hsl(var(--hue) 60% 24%)); color: light-dark(hsl(var(--hue) 55% 34%), hsl(var(--hue) 55% 80%)); }
+.tile .tile-icon.photo { border-radius: 50%; background: linear-gradient(135deg, #c8102e, #7a0a1c); color: #fff; }
+.tile .title { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tile .name { font-size: 1.1rem; font-weight: 650; letter-spacing: -.01em; }
+.tile .url { color: var(--muted); font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+a.tile:hover .url { color: var(--accent-text); }
+.tile .desc { color: var(--text-soft); font-size: .95rem; }
+.tile .metrics { display: flex; flex-wrap: wrap; gap: .35rem 1.25rem; margin-top: auto; padding-top: .7rem; border-top: 1px solid var(--line); }
+.metric { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.metric .value { font-size: 1rem; font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.metric .label { color: var(--muted); font-size: .75rem; }
+/* .card: a panel that holds content; stronger glass, readable over the castle */
+.card { padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r-l); background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow); min-width: 0; }
+.card > :last-child { margin-bottom: 0; }
+.card > h2 { margin: 0 0 var(--s3); }
+.card.solid { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }   /* a table's home on a dense screen */
+.card.danger { border-color: color-mix(in srgb, var(--err) 50%, var(--line)); }
+.card .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: 0 0 var(--s2); }
+.card .section-head h2 { margin: 0; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min)), 1fr)); gap: var(--s4); align-items: start; margin: 0 0 var(--s4); }
+.card-grid.wide { --card-min: 26rem; }
+.card-grid > * { margin: 0; min-width: 0; }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--s4); align-items: start; margin: 0 0 var(--s4); }
+/* .popover: a small panel that drops from a bar control (home's settings) */
+.popover { position: absolute; right: 0; top: calc(100% + .5rem); z-index: 20; display: flex; flex-direction: column; gap: var(--s3); width: 19rem; padding: var(--s4);
+  border: 1px solid var(--line); border-radius: var(--r-l); background: var(--glass-strong); box-shadow: var(--shadow-lg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
+/* .sheet: a side panel for a record's form (llm-proxy); full width on a phone */
+.sheet { position: absolute; top: 0; right: 0; bottom: 0; z-index: 30; width: min(27.5rem, 100%); display: flex; flex-direction: column;
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-left: 1px solid var(--line); box-shadow: var(--shadow-lg); }
+.sheet .sheet-head { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
+.sheet .sheet-head h2 { flex: 1; min-width: 0; }
+.sheet .sheet-body { flex: 1; overflow: auto; padding: var(--s2) var(--s4) var(--s5); }
+.scrim { position: absolute; inset: 0; z-index: 25; background: var(--scrim); }
+.section-h { display: flex; align-items: center; gap: var(--s2); margin: var(--s5) 0 var(--s2); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.hint { color: var(--muted); font-size: var(--t-s); max-width: 70ch; margin: 0 0 var(--s3); }
+
+/* ---------- 7. status ---------- */
+.dot { flex: none; display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; background: var(--muted); }
+.dot.sm { width: .5rem; height: .5rem; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 20%, transparent); }
+.dot.warn { background: var(--warn); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 20%, transparent); }
+.dot.err { background: var(--err); box-shadow: 0 0 0 4px color-mix(in srgb, var(--err) 20%, transparent); }
+.dot.sm.ok, .dot.sm.warn, .dot.sm.err { box-shadow: none; }
+.badge { display: inline-flex; align-items: center; gap: .35em; padding: 0 .6em; border-radius: var(--r-pill); font-size: var(--t-xs); font-weight: 600; line-height: 1.5rem; white-space: nowrap; vertical-align: middle;
+  color: var(--muted); background: color-mix(in srgb, var(--muted) 12%, transparent); }
+.badge.ok { color: var(--ok-text); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.badge.warn { color: var(--warn-text); background: color-mix(in srgb, var(--warn) 15%, transparent); }
+.badge.err { color: var(--err-text); background: color-mix(in srgb, var(--err) 15%, transparent); }
+.badge.info { color: var(--info); background: color-mix(in srgb, var(--info) 15%, transparent); }
+.badge.accent { color: var(--accent-text); background: var(--accent-soft); }
+.badge.outline { background: none; border: 1px solid currentColor; }
+.badge .dot { width: .4rem; height: .4rem; box-shadow: none; background: currentColor; }
+.note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 0 var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r-m); border: 1px solid var(--line); border-left: 4px solid var(--muted);
+  background: var(--glass-strong); color: var(--text-soft); }
+.note p { margin: 0; }
+.note.ok { border-left-color: var(--ok); color: var(--ok-text); }
+.note.warn { border-left-color: var(--warn); color: var(--warn-text); }
+.note.err { border-left-color: var(--err); color: var(--err-text); }
+.note .what { font-weight: 600; color: var(--text); }
+.note .why { flex: 1 1 20ch; min-width: 0; }
+.note.sticky { position: sticky; top: calc(var(--nav-h) + var(--s2)); z-index: 5; box-shadow: var(--shadow); }
+.toast { position: absolute; left: 50%; bottom: calc(var(--s5) + var(--tabbar-pad, 0px)); z-index: 40; transform: translateX(-50%); max-width: min(92%, 35rem); padding: var(--s3) var(--s4);
+  border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--r-m); background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow-lg); font-size: var(--t-s); }
+.toast.ok { border-left-color: var(--ok); } .toast.err { border-left-color: var(--err); }
+
+/* ---------- 8. controls ---------- */
+.btn, .screen button.btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s2); min-height: var(--tap); padding: 0 var(--s4); border: 1px solid var(--line-strong); border-radius: var(--r-s);
+  background: var(--surface); color: var(--text); font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; touch-action: manipulation; white-space: nowrap; }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+.btn.danger { background: var(--err); border-color: var(--err); color: #fff; }
+.btn.primary:hover, .btn.danger:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--text-soft); }
+.btn.ghost:hover { background: var(--hover); color: var(--text); }
+.btn.link { min-height: 0; padding: 0; border: 0; background: none; color: var(--accent-text); font-weight: 400; text-decoration: underline; }
+.btn.sm { min-height: calc(var(--tap) - .5rem); padding: 0 var(--s3); font-size: var(--t-s); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn.round { width: var(--tap); padding: 0; border-radius: 50%; }
+/* a switch: says where a thing stands and flips it. Settings use the accent;
+   a lamp's power switch on lights uses --on (the lamp's amber), a documented exception */
+.switch { position: relative; width: 3.25rem; height: 2rem; padding: 0; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface-2); cursor: pointer; flex: none; }
+.switch::before { content: ""; position: absolute; top: 3px; left: 3px; width: calc(2rem - 8px); height: calc(2rem - 8px); border-radius: 50%; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .15s; }
+.switch[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+.switch[aria-pressed="true"]::before { transform: translateX(1.25rem); }
+.switch.lamp[aria-pressed="true"] { background: var(--on); border-color: var(--on); }
+.switch.unknown { border-style: dashed; }
+.switch.unknown::before { transform: translateX(.625rem); opacity: .6; }
+[data-density="dense"] .switch { width: 2.5rem; height: 1.5rem; }
+[data-density="dense"] .switch::before { width: calc(1.5rem - 8px); height: calc(1.5rem - 8px); }
+[data-density="dense"] .switch[aria-pressed="true"]::before { transform: translateX(1rem); }
+.switch-wrap { display: grid; place-items: center; min-width: var(--tap); min-height: var(--tap); }
+/* inputs: opaque, so they read over glass; label above, hint under */
+.field { display: flex; flex-direction: column; gap: var(--s1); min-width: 0; flex: 1 1 11rem; font-size: var(--t-xs); font-weight: 600; color: var(--muted); }
+.field.grow { flex-grow: 3; }
+.field .hint { margin: 0; font-weight: 400; }
+.input, .screen select.input, .screen textarea.input { min-height: var(--tap); width: 100%; padding: 0 var(--s3); border: 1px solid var(--line-strong); border-radius: var(--r-s); background: var(--surface); color: var(--text); font: inherit; font-size: var(--t-m); font-weight: 400; }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+textarea.input { padding: var(--s2) var(--s3); min-height: 5rem; resize: vertical; }
+.input::placeholder { color: var(--muted); opacity: .8; }
+.fields { display: flex; flex-wrap: wrap; align-items: end; gap: var(--s3); margin: 0 0 var(--s3); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-top: var(--s3); }
+.check { display: flex; align-items: center; gap: var(--s2); min-height: var(--tap); font-size: var(--t-m); font-weight: 400; color: var(--text); }
+.check input { width: 1.125rem; height: 1.125rem; margin: 0; accent-color: var(--accent); }
+/* segmented: a few choices as one control (on/off/toggle; auto/light/dark) */
+.segmented { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-s); overflow: hidden; }
+.segmented > * { min-height: var(--tap); padding: 0 var(--s4); border: 0; background: var(--surface); color: var(--text-soft); font: inherit; font-weight: 500; cursor: pointer; }
+.segmented > * + * { border-left: 1px solid var(--line-strong); }
+.segmented > [aria-pressed="true"], .segmented > .on { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+/* slider with its value */
+.slider { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s1) var(--s3); margin: 0 0 var(--s4); }
+.slider label { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: var(--t-s); font-weight: 600; }
+.slider output { font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+.slider input[type="range"] { width: 100%; margin: 0; accent-color: var(--accent); min-height: var(--tap); }
+.slider.kelvin input[type="range"] { accent-color: var(--kelvin); }
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s3); margin: 0 0 var(--s3); }
+.toolbar .meta { color: var(--muted); font-size: var(--t-s); }
+.toolbar .input { width: auto; min-width: min(100%, 14rem); }
+.chips { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2); padding: 0; margin: 0 0 var(--s3); }
+.chips li { display: inline-flex; align-items: center; gap: var(--s2); padding: 0 var(--s2) 0 var(--s3); min-height: 2rem; background: var(--surface-2); border-radius: var(--r-pill); font-size: var(--t-s); }
+
+/* ---------- 9. lists and tables ---------- */
+/* rows: a name, a state and an action per line (lights' devices, rooms) */
+ul.rows { list-style: none; margin: 0; padding: 0; }
+ul.rows > li { display: grid; grid-template-columns: auto minmax(min(11rem, 100%), 1fr) auto auto; align-items: center; gap: var(--s1) var(--s3); padding: var(--s3) 0; min-height: 3.75rem; }
+ul.rows > li + li { border-top: 1px solid var(--line); }
+.row-icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
+.row-main { min-width: 0; }
+.row-title { display: block; font-weight: 600; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+.row-sub, .row-facts { display: block; font-size: var(--t-s); color: var(--muted); overflow-wrap: anywhere; }
+.row-state { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); font-size: var(--t-s); color: var(--muted); }
+.row-actions { display: flex; align-items: center; gap: var(--s2); }
+li.offline .row-title, li.offline .row-icon { opacity: .6; }
+.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); vertical-align: -2px; }
+@container frame (max-width: 47.99rem) {
+  ul.rows > li { grid-template-columns: auto minmax(min(8rem, 100%), 1fr) auto; }
+  .row-state { grid-column: 2 / -1; grid-row: 2; justify-content: flex-start; }
+  .row-actions { grid-column: 3; grid-row: 1; }
+}
+/* tables: dense, hover rows, numbers right; wide ones scroll in their box */
+.table-wrap { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; }
+table.data th, table.data td { text-align: left; padding: var(--s2) var(--s3); border-bottom: 1px solid var(--line); vertical-align: middle; font-size: var(--t-s); }
+table.data th { color: var(--muted); font-weight: 600; font-size: var(--t-xs); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+table.data th.num, table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+table.data tbody tr:hover > td { background: var(--hover); }
+table.data tr:last-child td { border-bottom: 0; }
+table.data tr.hl > td { background: var(--accent-soft); }
+table.data td.lead { font-weight: 600; color: var(--text); }
+table.data td .sub { display: block; color: var(--muted); font-size: var(--t-xs); font-weight: 400; }
+table.data th .sort { color: var(--accent-text); font-size: .7em; margin-left: .25em; }
+/* phone: a .stack table becomes one card-like row per record */
+@container frame (max-width: 47.99rem) {
+  table.stack, table.stack tbody { display: block; width: auto; }
+  table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  table.stack tr { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); padding: var(--s3) 0; border-bottom: 1px solid var(--line); }
+  table.stack td { display: block; order: 2; padding: 0; border: 0; text-align: left; white-space: normal; }
+  table.stack td[data-label]::before { content: attr(data-label) " "; color: var(--muted); font-size: var(--t-xs); }
+  table.stack td.lead { order: 0; flex: 1 1 50%; font-size: var(--t-m); }
+  table.stack td.trail { order: 1; flex: none; }
+  table.stack td.wide { order: 3; flex: 1 1 100%; }
+  table.stack td.end { order: 4; flex: 1 1 100%; }
+  table.stack tbody tr:hover > td { background: none; }
+}
+dl.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s4); margin: 0 0 var(--s3); }
+dl.facts dt { color: var(--muted); font-size: var(--t-s); }
+dl.facts dd { margin: 0; overflow-wrap: anywhere; }
+
+/* ---------- 10. stats ---------- */
+.stats { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); margin: 0 0 var(--s4); }
+.stat { display: flex; flex-direction: column; gap: 2px; padding: var(--s3) var(--s4); border: 1px solid var(--line); border-radius: var(--r-m); background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); color: inherit; text-decoration: none; min-width: 0; }
+a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.stat .value { font-size: var(--t-2xl); font-weight: 650; line-height: 1.15; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.stat .label { font-size: var(--t-xs); color: var(--muted); }
+.stat .sub { font-size: var(--t-xs); color: var(--muted); }
+.stat.unavailable .value { color: var(--muted); font-weight: 500; }
+
+/* ---------- 11. touch pieces (lights) ---------- */
+.lamp-room { padding: var(--s3); }
+.lamp-room h2 { font-size: var(--t-s); margin: 0 0 var(--s2); color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; display: flex; justify-content: space-between; }
+.lamp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: .6rem; }
+.lamp-tile { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+.lamp { position: relative; overflow: hidden; width: 100%; min-height: 5.75rem; padding: .7rem .8rem; border: 1px solid var(--line-strong); border-radius: var(--r-l);
+  background: var(--glass-strong); color: var(--text); display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .08s; }
+.lamp:active { transform: scale(.97); }
+.lamp .name { font-size: 1.05rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.lamp .status { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
+.lamp.on { border-color: transparent; background: var(--fill); box-shadow: 0 0 0 1px color-mix(in srgb, var(--fill) 60%, transparent), 0 6px 18px color-mix(in srgb, var(--fill) 35%, transparent); }
+.lamp.on.ink-dark { color: var(--ink-dark); } .lamp.on.ink-light { color: var(--ink-light); }
+.lamp.unknown { border-style: dashed; } .lamp.unknown .status { opacity: .6; }
+.lamp.disabled { opacity: .45; cursor: not-allowed; border-style: dashed; }
+.lamp-dim { display: grid; grid-template-columns: 1fr 1fr; gap: .25rem; }
+.lamp-dim button { min-height: 2.75rem; padding: 0; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: var(--r-s); background: var(--glass-strong); color: var(--text); cursor: pointer; }
+.lamp-dim button:first-child { border-bottom-left-radius: var(--r-l); } .lamp-dim button:last-child { border-bottom-right-radius: var(--r-l); }
+.lamp-dim button:disabled { opacity: .35; }
+.lamp-dim svg.icon { width: 1.5rem; height: 1.5rem; stroke-width: 2.4; }
+.lamp-tile:has(.lamp-dim) .lamp { border-bottom-left-radius: var(--r-s); border-bottom-right-radius: var(--r-s); }
+
+/* ---------- 12. login: one card on the castle, the app's mark on top ---------- */
+.login-wrap { position: relative; z-index: 1; min-height: 100%; display: grid; place-items: center; padding: var(--s5) var(--s4); }
+.login { display: flex; flex-direction: column; gap: var(--s3); width: min(22.5rem, 100%); padding: var(--s6) var(--s5) var(--s5); border: 1px solid var(--line); border-radius: var(--r-l);
+  background: var(--glass-strong); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: var(--shadow-lg); text-align: center; }
+.login .mark { display: grid; place-items: center; margin: 0 auto var(--s1); width: 3.5rem; height: 3.5rem; border-radius: var(--r-m); font-size: 1.75rem; background: light-dark(hsl(var(--hue) 60% 92%), hsl(var(--hue) 60% 24%)); color: light-dark(hsl(var(--hue) 55% 34%), hsl(var(--hue) 55% 80%)); }
+.login h1 { font-size: var(--t-xl); letter-spacing: .02em; }
+.login .sub { margin: -6px 0 var(--s2); color: var(--muted); font-size: var(--t-s); }
+.login .field { text-align: left; }
+.login .foot { font-size: var(--t-xs); color: var(--muted); margin: var(--s2) 0 0; }
+.login .home-link { align-self: center; }
+
+/* ---------- 13. empty state, pager, code ---------- */
+.empty { display: grid; justify-items: center; gap: var(--s2); padding: var(--s6) var(--s4); border: 1px dashed var(--line-strong); border-radius: var(--r-m); color: var(--muted); text-align: center; }
+.empty svg.icon { width: 2rem; height: 2rem; }
+.empty p { margin: 0; max-width: 52ch; }
+.empty b { color: var(--text); }
+.pager { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin: var(--s3) 0 0; font-size: var(--t-s); color: var(--muted); }
+.pager .pages { display: inline-flex; gap: var(--s1); }
+.pager .pages > * { min-width: var(--tap); min-height: var(--tap); display: grid; place-items: center; border-radius: var(--r-s); border: 1px solid transparent; color: var(--text-soft); text-decoration: none; }
+.pager .pages > [aria-current] { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.screen pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg-sunken); color: var(--text); font: var(--t-s)/1.5 var(--mono); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.log .t { color: var(--muted); } .log .e { color: var(--err-text); } .log .k { color: var(--accent-text); }
+.checklist { list-style: none; margin: 0; padding: 0; }
+.checklist li { display: flex; gap: var(--s3); align-items: center; padding: var(--s2) 0; border-bottom: 1px solid var(--line); }
+.checklist li:last-child { border-bottom: 0; }
+.checklist .n { width: 1.5rem; height: 1.5rem; flex: none; border-radius: 50%; border: 1.5px solid var(--line-strong); display: grid; place-items: center; font-size: var(--t-xs); font-weight: 700; color: var(--muted); }
+.checklist .n.done { background: var(--ok); border-color: var(--ok); color: #fff; }
+.checklist .n.cur { border-color: var(--accent); color: var(--accent-text); }
+.checklist .sp { flex: 1; } .checklist .sp b { display: block; }
+
+/* ---------- 14. motion ---------- */
+@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp { transition: none; } a.tile:hover { transform: none; } }
+</style>
+<style id="mockup-chrome">
+/* ---- the mockup page itself (not part of castle.css) ---- */
+html { color-scheme: light dark; }
+html[data-theme="light"] { color-scheme: light; } html[data-theme="dark"] { color-scheme: dark; }
+.frame[data-theme="light"] { color-scheme: light; } .frame[data-theme="dark"] { color-scheme: dark; }
+body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#dfe3ea, #05070b); color: light-dark(#141821, #e8ebf1); }
+.bar { position: sticky; top: 0; z-index: 100; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; padding: .6rem 1rem; background: light-dark(#f7f8fb, #11151c); border-bottom: 1px solid light-dark(#cfd5df, #262c38); }
+.bar h1 { font-size: 15px; margin: 0 .5rem 0 0; }
+.bar .grp { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+.bar .grp > span { color: light-dark(#5a6473, #9aa3b2); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; margin-right: .2rem; }
+.bar button { font: inherit; font-size: 13px; padding: .3rem .7rem; border: 1px solid light-dark(#c5ccd8, #343b49); border-radius: 999px; background: light-dark(#fff, #1b202a); color: inherit; cursor: pointer; }
+.bar button[aria-pressed="true"] { background: light-dark(#2b59c3, #7ea6ff); border-color: transparent; color: light-dark(#fff, #0b1020); font-weight: 600; }
+.bar select { font: inherit; font-size: 13px; padding: .3rem .5rem; border-radius: 6px; border: 1px solid light-dark(#c5ccd8, #343b49); background: light-dark(#fff, #1b202a); color: inherit; }
+.bar .app { opacity: .55; font-size: 11px; margin-left: .4rem; }
+.stage { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 1.5rem; padding: 1.5rem 1rem 3rem; }
+.frame-wrap { display: flex; flex-direction: column; gap: .4rem; align-items: center; }
+.frame-wrap .cap { font-size: 12px; color: light-dark(#5a6473, #9aa3b2); }
+.frame { position: relative; overflow: hidden; container-type: inline-size; container-name: frame; border: 1px solid light-dark(#b9c1cf, #2b3240); box-shadow: 0 10px 40px rgb(0 0 0 / .25); background: var(--bg); }
+.frame.phone { width: 390px; height: 800px; border-radius: 28px; }
+.frame.desk { width: 1180px; height: 760px; border-radius: 10px; zoom: var(--zoom, .8); }
+.frame .screen { position: absolute; inset: 0; overflow: auto; }
+.frame > nav.tabs { position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; }
+.screen { --castle: url("data:image/webp;base64,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"); }
+.note-box { max-width: 72rem; margin: 0 auto; padding: 0 1rem 1rem; font-size: 13px; color: light-dark(#5a6473, #9aa3b2); }
+/* foundations screen bits */
+.sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .5rem; margin: 0 0 1rem; }
+.sw div { height: 3.25rem; border-radius: 8px; border: 1px solid var(--line-strong); display: flex; align-items: end; padding: .3rem .5rem; font: 11px/1.2 var(--mono); }
+.row-demo { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: 0 0 1rem; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 21V9h3v2h3V9h4v2h3V9h3v12zM10 21v-5a2 2 0 0 1 4 0v5M4 9V6M20 9V6"/></symbol>
+  <symbol id="i-lamp" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-devices" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></symbol>
+  <symbol id="i-rooms" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+  <symbol id="i-requests" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 12l3 3 5-6"/></symbol>
+  <symbol id="i-more" viewBox="0 0 24 24"><path d="M5 11.5v1M12 11.5v1M19 11.5v1"/></symbol>
+  <symbol id="i-socket" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v4a6 6 0 0 1-12 0zM12 18v3"/></symbol>
+  <symbol id="i-other" viewBox="0 0 24 24"><path d="M12 12h.01M8 8a6 6 0 0 0 0 8M16 8a6 6 0 0 1 0 8"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M6 12h12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><path d="M3 5h18v11H3zM8 21h8M12 16v5"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM20 20l-4-4"/></symbol>
+  <symbol id="i-overview" viewBox="0 0 24 24"><path d="M4 13h6V4H4zM14 20h6v-9h-6zM4 20h6v-4H4zM14 8h6V4h-6z"/></symbol>
+  <symbol id="i-karma" viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></symbol>
+  <symbol id="i-mood" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></symbol>
+  <symbol id="i-state" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></symbol>
+  <symbol id="i-conv" viewBox="0 0 24 24"><path d="M4 5h16v10H9l-5 4z"/></symbol>
+  <symbol id="i-models" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/></symbol>
+  <symbol id="i-memory" viewBox="0 0 24 24"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"/></symbol>
+  <symbol id="i-tools" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0 5 5L9 22l-3-3L16.7 8.3M4 4l5 5"/></symbol>
+  <symbol id="i-discord" viewBox="0 0 24 24"><path d="M8 17c-2 0-4-1-5-2 0-5 2-9 4-10 1 0 3 1 3 1h4s2-1 3-1c2 1 4 5 4 10-1 1-3 2-5 2M9 13h.01M15 13h.01"/></symbol>
+  <symbol id="i-sched" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-mcp" viewBox="0 0 24 24"><path d="M5 12h4M15 12h4M12 5v4M12 15v4M9 9h6v6H9z"/></symbol>
+  <symbol id="i-plugins" viewBox="0 0 24 24"><path d="M9 3v4H5v6a5 5 0 0 0 10 0V7h-4V3M10 18v3M14 18v3"/></symbol>
+  <symbol id="i-puppet" viewBox="0 0 24 24"><path d="M12 3v4M7 7h10l1 6H6zM8 13v6M16 13v6M6 21h12"/></symbol>
+  <symbol id="i-rules" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6"/></symbol>
+  <symbol id="i-replay" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v5h5M12 8v4l3 2"/></symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 12h3M11 12h9M4 17h12M20 17h0M14 5v4M7 10v4M16 15v4"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-key" viewBox="0 0 24 24"><path d="M8 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM11.5 12.5L20 4M17 7l2 2M15 9l2 2"/></symbol>
+</svg>
+
+<header class="bar">
+  <h1>Castle design language · mockup</h1>
+  <div class="grp" id="screens"><span>Screen</span></div>
+  <div class="grp" id="themes"><span>Theme</span>
+    <button data-theme="system">System</button><button data-theme="light">Light</button><button data-theme="dark">Dark</button><button data-theme="both" aria-pressed="true">Both</button></div>
+  <div class="grp" id="frames"><span>Frame</span>
+    <button data-frame="phone">Phone</button><button data-frame="desk">Desktop</button><button data-frame="both" aria-pressed="true">Both</button></div>
+  <div class="grp"><span>Desktop zoom</span>
+    <select id="zoom"><option value="1">100%</option><option value=".8" selected>80%</option><option value=".66">66%</option><option value=".5">50%</option></select></div>
+  <div class="grp" id="art"><span>Castle on dense apps</span>
+    <button data-art="quiet" aria-pressed="true">Faint</button><button data-art="off">Off</button><button data-art="full">Full</button></div>
+</header>
+<p class="note-box">Every screen below is drawn by one stylesheet, this file's <code>&lt;style id="castle-css"&gt;</code>: a copy of the repository's <code>assets/castle.css</code> scoped to the frames. Pick a screen, a theme and a frame; the frames are live (resize-aware) and scroll. The dense apps show the castle faint (the chosen look); the other two buttons show none and full for comparison. The names and data are examples.</p>
+<div class="stage" id="stage"></div>
+
+<!-- =================== FOUNDATIONS =================== -->
+<template id="s-foundations" data-title="Foundations" data-app="" data-density="">
+<div class="screen">
+  <div class="backdrop"></div>
+  <header class="topbar"><a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a><a class="brand" href="#">foundations</a><span class="spacer"></span><div class="side">
+    <div class="theme-switch" role="group" aria-label="Theme"><button aria-pressed="true" title="System"><svg class="icon"><use href="#i-monitor"/></svg></button><button title="Light"><svg class="icon"><use href="#i-sun"/></svg></button><button title="Dark"><svg class="icon"><use href="#i-moon"/></svg></button></div></div></header>
+  <main class="page">
+    <h1>Foundations</h1>
+    <p class="soft">The tokens and the components every castle app draws from. Comfortable scale here; the maia and llm-proxy screens use the dense scale.</p>
+    <h2 class="section-h">Colour</h2>
+    <div class="sw">
+      <div style="background:var(--bg)">--bg</div><div style="background:var(--bg-sunken)">--bg-sunken</div><div style="background:var(--surface)">--surface</div><div style="background:var(--surface-2)">--surface-2</div>
+      <div style="background:var(--glass)">--glass</div><div style="background:var(--glass-strong)">--glass-strong</div><div style="background:var(--accent);color:var(--accent-contrast)">--accent</div><div style="background:var(--accent-soft)">--accent-soft</div>
+      <div style="background:var(--ok);color:#fff">--ok</div><div style="background:var(--warn);color:#fff">--warn</div><div style="background:var(--err);color:#fff">--err</div><div style="background:var(--info);color:#fff">--info</div>
+      <div style="background:var(--text);color:var(--bg)">--text</div><div style="background:var(--text-soft);color:var(--bg)">--text-soft</div><div style="background:var(--muted);color:var(--bg)">--muted</div><div style="background:var(--line-strong)">--line-strong</div>
+    </div>
+    <h2 class="section-h">Type</h2>
+    <div class="card"><h1 style="margin-bottom:.25rem">Hero title · clamp(1.75, 4vw, 2.5rem) 700</h1><h2 style="margin-bottom:.25rem">Card title · 1.125rem 650</h2><p>Body · 1rem/1.5, system-ui. <span class="soft">Soft text for descriptions on glass.</span> <span class="muted">Muted for labels and hints.</span> <code>mono for ids and addresses</code></p><p class="hint" style="margin:0">Hint · .875rem muted. Dense screens: body .875rem, title 1rem, hint .8125rem.</p></div>
+    <h2 class="section-h">Surfaces over the castle</h2>
+    <div class="card-grid">
+      <a class="tile" href="#"><span class="head"><span class="tile-icon" style="--hue:210">T</span><span class="title"><span class="name">.tile</span><span class="url">glass 46 % · blur 2 px · r-l</span></span><span class="dot ok"></span></span><span class="desc">A card you tap: home's app cards, a room on lights. Lifts on hover.</span></a>
+      <div class="card"><h2>.card</h2><p>Glass 80 % with blur 12 px: panels that hold forms, rows and text. Readable over the picture.</p></div>
+      <div class="card solid"><h2>.card.solid</h2><p>Opaque surface: a dense table's home, where every pixel of contrast counts.</p></div>
+    </div>
+    <h2 class="section-h">Status</h2>
+    <div class="row-demo"><span class="dot ok"></span><span class="dot warn"></span><span class="dot err"></span><span class="dot"></span>
+      <span class="badge ok">in sync</span><span class="badge warn">battery 12%</span><span class="badge err">offline</span><span class="badge">not seen yet</span><span class="badge info">public</span><span class="badge accent">key required</span><span class="badge ok"><span class="dot"></span>connected</span></div>
+    <div class="note ok"><span class="what">Confirmed:</span><span class="why">Floor lamp is on, 40 %.</span></div>
+    <div class="note warn"><span class="what">2 devices need a room.</span><span class="why">A device can be switched only once it is in a room.</span><a href="#">Put them in a room</a></div>
+    <div class="note err"><span class="what">MCP · weather</span><span class="why">connection refused after 3 tries</span><a href="#">Open</a></div>
+    <h2 class="section-h">Controls</h2>
+    <div class="row-demo"><button class="btn primary">Save</button><button class="btn">Ask the device</button><button class="btn ghost">Cancel</button><button class="btn danger">Delete room</button><button class="btn link">link button</button><button class="btn sm">small</button><button class="icon-btn" title="Settings"><svg class="icon"><use href="#i-gear"/></svg></button><button class="pill-btn" aria-pressed="true">Edit</button></div>
+    <div class="row-demo"><button class="switch" aria-pressed="true" aria-label="enabled"></button><button class="switch" aria-label="disabled"></button><button class="switch unknown" aria-label="unknown"></button><span class="app-lights" style="display:inline-flex;gap:.75rem"><button class="switch lamp" aria-pressed="true" aria-label="lamp on"></button></span>
+      <div class="segmented"><button aria-pressed="true">On</button><button>Off</button><button>Toggle</button></div>
+      <div class="segmented"><button>Auto</button><button aria-pressed="true">Light</button><button>Dark</button></div></div>
+    <div class="card"><div class="fields"><label class="field">Name<input class="input" value="Desk lamp"></label><label class="field">Room<select class="input"><option>Living room</option></select></label><label class="field grow">or a new room<input class="input" placeholder="e.g. Living room"><span class="hint">What maia understands when someone says "the kitchen".</span></label><button class="btn primary">Save</button></div>
+      <div class="slider"><label>Brightness <output>40 %</output></label><input type="range" value="40"></div>
+      <div class="slider kelvin"><label>Colour temperature <output>2700 K</output></label><input type="range" value="30"></div></div>
+    <h2 class="section-h">Table (dense look at comfortable scale)</h2>
+    <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th>model</th><th>type</th><th>access</th><th class="num">requests 24 h</th><th>enabled</th></tr></thead><tbody>
+      <tr><td class="lead">llama3-8b<span class="sub">vLLM · gpu-box</span></td><td>chat</td><td><span class="badge accent">key required</span></td><td class="num">1 204</td><td><button class="switch" aria-pressed="true"></button></td></tr>
+      <tr class="hl"><td class="lead">kokoro<span class="sub">custom · tts</span></td><td>tts</td><td><span class="badge info">public</span></td><td class="num">37</td><td><button class="switch" aria-pressed="true"></button></td></tr>
+      <tr><td class="lead">whisper-large-v3<span class="sub">speaches</span></td><td>stt</td><td><span class="badge accent">key required</span></td><td class="num">0</td><td><button class="switch"></button></td></tr></tbody></table></div>
+      <div class="pager"><span>3 of 12 models</span><span class="pages"><a href="#">‹</a><a href="#" aria-current="page">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></span></div></div>
+    <div class="empty"><svg class="icon"><use href="#i-rooms"/></svg><p><b>No rooms yet.</b><br>Create the first one above.</p></div>
+    <pre class="log"><span class="t">09:12:04</span> <span class="k">bridge/response/permit_join</span> ok transaction=0001
+<span class="t">09:12:09</span> device/0x00124b0000000001 state=ON brightness=102
+<span class="t">09:12:11</span> <span class="e">bridge/logging error: Zigbee publish to 'Shelf' failed: no response</span></pre>
+  </main>
+</div>
+</template>
+
+<!-- =================== HOME =================== -->
+<template id="s-home" data-title="Home · dashboard" data-app="home" data-density="">
+<div class="screen app-home">
+  <div class="backdrop"></div>
+  <main class="page hero">
+    <header class="page-head" style="align-items:center">
+      <h1>my-castle</h1>
+      <div class="actions" style="align-items:center;gap:.75rem;flex-wrap:wrap">
+        <span class="muted num" style="display:inline-flex;align-items:center;gap:.45rem;font-size:.95rem"><span class="dot sm warn"></span>5 of 6 up</span>
+        <button class="pill-btn">Edit</button>
+        <span style="position:relative"><button class="icon-btn" title="Settings"><svg class="icon"><use href="#i-gear"/></svg></button></span>
+        <div class="theme-switch" role="group" aria-label="Theme"><button aria-pressed="true" title="System"><svg class="icon"><use href="#i-monitor"/></svg></button><button title="Light"><svg class="icon"><use href="#i-sun"/></svg></button><button title="Dark"><svg class="icon"><use href="#i-moon"/></svg></button></div>
+      </div>
+    </header>
+    <ul class="card-grid" style="list-style:none;padding:0">
+      <li><a class="tile" href="#"><span class="head"><span class="tile-icon photo">M</span><span class="title"><span class="name">maia</span><span class="url">maia.my-castle.net</span></span><span class="dot ok"></span></span><span class="desc">The home assistant bot: chat, plugins, settings</span>
+        <span class="metrics"><span class="metric"><b class="value">212</b><small class="label">messages 24 h</small></span><span class="metric"><b class="value">4 min ago</b><small class="label">last reply</small></span><span class="metric"><b class="value">good (41)</b><small class="label">mood</small></span><span class="metric"><b class="value">3</b><small class="label">open conversations</small></span></span></a></li>
+      <li><div class="tile"><span class="head"><span class="tile-icon" style="--hue:45">⚡</span><span class="title"><span class="name">gpu-box</span></span><span class="dot warn"></span></span><span class="desc">The GPU server: GPU, memory and its models</span>
+        <span class="metrics"><span class="metric"><b class="value">100 (611)</b><small class="label">GPU % (MHz)</small></span><span class="metric"><b class="value">true (4.9 W)</b><small class="label">clock stuck (W)</small></span><span class="metric"><b class="value">45 / 122</b><small class="label">memory GiB used</small></span><span class="metric"><b class="value">3 / 3</b><small class="label">models up</small></span></span></div></li>
+      <li><a class="tile" href="#"><span class="head"><span class="tile-icon" style="--hue:260">🧠</span><span class="title"><span class="name">llm-proxy</span><span class="url">llm.my-castle.net/ui</span></span><span class="dot ok"></span></span><span class="desc">The LLM proxy: backends, models, keys, usage</span>
+        <span class="metrics"><span class="metric"><b class="value">1 842</b><small class="label">requests 24 h</small></span><span class="metric"><b class="value">3.1 M</b><small class="label">tokens 24 h</small></span><span class="metric"><b class="value">0.4 %</b><small class="label">errors 24 h</small></span></span></a></li>
+      <li><a class="tile" href="#"><span class="head"><span class="tile-icon" style="--hue:160">🖼️</span><span class="title"><span class="name">image-desk</span><span class="url">images.my-castle.net</span></span><span class="dot ok"></span></span><span class="desc">Prompt the image model and browse the results</span>
+        <span class="metrics"><span class="metric"><b class="value">1 207</b><small class="label">images</small></span><span class="metric"><b class="value">14</b><small class="label">made 24 h</small></span><span class="metric"><b class="value">2 h ago</b><small class="label">last generated</small></span></span></a></li>
+      <li><a class="tile" href="#"><span class="head"><span class="tile-icon" style="--hue:40">💡</span><span class="title"><span class="name">lights</span><span class="url">lights.my-castle.net</span></span><span class="dot ok"></span></span><span class="desc">zigbee lights and sockets: rooms, switching, pairing</span>
+        <span class="metrics"><span class="metric"><b class="value">2 / 9</b><small class="label">lights on</small></span><span class="metric"><b class="value">13 / 14</b><small class="label">devices online</small></span><span class="metric"><b class="value">12 min ago</b><small class="label">last action</small></span></span></a></li>
+      <li><a class="tile" href="#"><span class="head"><span class="tile-icon" style="--hue:330">🐙</span><span class="title"><span class="name">github</span><span class="url">github.com/example</span></span></span><span class="desc">My commits and closed issues</span>
+        <span class="metrics"><span class="metric"><b class="value">18 402</b><small class="label">lines 7 d</small></span><span class="metric"><b class="value">9</b><small class="label">repos 7 d</small></span><span class="metric"><b class="value">23</b><small class="label">issues closed 7 d</small></span></span></a></li>
+    </ul>
+  </main>
+</div>
+</template>
+
+<!-- =================== LIGHTS =================== -->
+<template id="t-lights-bar">
+  <header class="topbar"><a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a><a class="brand" href="#">lights</a>
+    <nav class="tabs" aria-label="Main">
+      <a href="#" data-nav="lamps"><svg class="icon"><use href="#i-lamp"/></svg><span>Lamps</span></a>
+      <a href="#" data-nav="devices"><svg class="icon"><use href="#i-devices"/></svg><span>Devices</span></a>
+      <a href="#" data-nav="rooms"><svg class="icon"><use href="#i-rooms"/></svg><span>Rooms</span></a>
+      <a href="#" data-nav="requests"><svg class="icon"><use href="#i-requests"/></svg><span>Requests</span><span class="count">2</span></a>
+      <a href="#" class="more"><svg class="icon"><use href="#i-more"/></svg><span>More</span><span class="caret"></span></a>
+    </nav><span class="spacer"></span>
+    <div class="side"><div class="theme-switch" role="group" aria-label="Theme"><button aria-pressed="true" title="System"><svg class="icon"><use href="#i-monitor"/></svg></button><button title="Light"><svg class="icon"><use href="#i-sun"/></svg></button><button title="Dark"><svg class="icon"><use href="#i-moon"/></svg></button></div></div></header>
+</template>
+
+<template id="s-lights-lamps" data-title="Lamps" data-app="lights" data-density="" data-nav="lamps">
+<div class="screen app-lights"><div class="backdrop"></div><!--bar-->
+  <main class="page">
+    <h1>Lamps</h1>
+    <div class="note ok sticky"><span class="what">Confirmed:</span><span class="why">Reading lamp is on, 60 %.</span></div>
+    <div class="card-grid">
+      <section class="card lamp-room"><h2>Living room <span class="muted" style="text-transform:none;letter-spacing:0">3 lamps</span></h2><div class="lamp-grid">
+        <div class="lamp-tile"><button class="lamp on ink-dark" style="--fill:#ffd6a0"><span class="name">Floor lamp</span><span class="status">on · 40 %</span></button><div class="lamp-dim"><button aria-label="dimmer"><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+        <div class="lamp-tile"><button class="lamp on ink-light" style="--fill:#d9542b"><span class="name">Reading lamp</span><span class="status">on · 60 %</span></button><div class="lamp-dim"><button aria-label="dimmer"><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+        <div class="lamp-tile"><button class="lamp"><span class="name">Shelf</span><span class="status">off</span></button><div class="lamp-dim"><button aria-label="dimmer" disabled><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+      </div></section>
+      <section class="card lamp-room"><h2>Kitchen <span class="muted" style="text-transform:none;letter-spacing:0">2 lamps</span></h2><div class="lamp-grid">
+        <div class="lamp-tile"><button class="lamp unknown"><span class="name">Ceiling</span><span class="status">unknown</span></button><div class="lamp-dim"><button aria-label="dimmer" disabled><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+        <div class="lamp-tile"><button class="lamp on ink-dark" style="--fill:#fff3d6"><span class="name">Counter</span><span class="status">on · 100 %</span></button><div class="lamp-dim"><button aria-label="dimmer"><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter" disabled><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+      </div></section>
+      <section class="card lamp-room"><h2>Bedroom <span class="muted" style="text-transform:none;letter-spacing:0">2 lamps</span></h2><div class="lamp-grid">
+        <div class="lamp-tile"><button class="lamp"><span class="name">Bedside left</span><span class="status">off</span></button><div class="lamp-dim"><button aria-label="dimmer" disabled><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+        <div class="lamp-tile"><button class="lamp disabled"><span class="name">Bedside right</span><span class="status">offline</span></button></div>
+      </div></section>
+      <section class="card lamp-room"><h2>Hall <span class="muted" style="text-transform:none;letter-spacing:0">2 lamps</span></h2><div class="lamp-grid">
+        <div class="lamp-tile"><button class="lamp on ink-light" style="--fill:#5b4bd6"><span class="name">Hall strip</span><span class="status">on · gradient</span></button><div class="lamp-dim"><button aria-label="dimmer"><svg class="icon"><use href="#i-minus"/></svg></button><button aria-label="brighter"><svg class="icon"><use href="#i-plus"/></svg></button></div></div>
+        <div class="lamp-tile"><button class="lamp"><span class="name">Porch</span><span class="status">off</span></button></div>
+      </div></section>
+    </div>
+  </main>
+</div>
+</template>
+
+<template id="s-lights-rooms" data-title="Rooms" data-app="lights" data-density="" data-nav="rooms">
+<div class="screen app-lights"><div class="backdrop"></div><!--bar-->
+  <main class="page">
+    <h1>Rooms</h1>
+    <p class="soft" style="max-width:44rem">A device can be switched only once it is in a room. Room names and aliases are what maia understands when someone says "the lights in the kitchen".</p>
+    <div class="note warn"><span class="what">2 devices can be switched but are in no room yet.</span><a href="#">Put them in a room.</a></div>
+    <div class="card" style="margin-bottom:1rem"><div class="fields" style="margin:0"><label class="field">New room<input class="input" placeholder="e.g. Living room"></label><button class="btn primary">Create room</button></div></div>
+    <ul class="card-grid wide" style="list-style:none;padding:0">
+      <li class="card"><ul class="rows"><li style="padding:0;min-height:0"><div class="row-icon"><svg class="icon"><use href="#i-rooms"/></svg></div><div class="row-main"><a class="row-title" href="#">Living room</a><span class="row-sub">lounge, front room</span></div><div class="row-state"><span class="muted">4 devices</span></div><span class="badge ok">group in sync</span></li></ul></li>
+      <li class="card"><ul class="rows"><li style="padding:0;min-height:0"><div class="row-icon"><svg class="icon"><use href="#i-rooms"/></svg></div><div class="row-main"><a class="row-title" href="#">Kitchen</a></div><div class="row-state"><span class="muted">3 devices</span></div><span class="badge ok">group in sync</span></li></ul></li>
+      <li class="card"><ul class="rows"><li style="padding:0;min-height:0"><div class="row-icon"><svg class="icon"><use href="#i-rooms"/></svg></div><div class="row-main"><a class="row-title" href="#">Bedroom</a><span class="row-sub">sleeping room</span></div><div class="row-state"><span class="muted">2 devices</span></div><span class="badge">group pending</span></li></ul></li>
+      <li class="card"><ul class="rows"><li style="padding:0;min-height:0"><div class="row-icon"><svg class="icon"><use href="#i-rooms"/></svg></div><div class="row-main"><a class="row-title" href="#">Hall</a></div><div class="row-state"><span class="muted">2 devices</span></div><span class="badge err">does not match</span></li></ul></li>
+      <li class="card"><ul class="rows"><li style="padding:0;min-height:0"><div class="row-icon"><svg class="icon"><use href="#i-rooms"/></svg></div><div class="row-main"><a class="row-title" href="#">Office</a></div><div class="row-state"><span class="muted">1 device</span></div><span class="badge ok">matches</span></li></ul></li>
+    </ul>
+  </main>
+</div>
+</template>
+
+<template id="s-lights-devices" data-title="Devices" data-app="lights" data-density="" data-nav="devices">
+<div class="screen app-lights"><div class="backdrop"></div><!--bar-->
+  <main class="page">
+    <h1>Devices</h1>
+    <section class="card" style="border-left:4px solid var(--warn)"><h2>2 devices need a room</h2><p class="soft">A device can be switched only once it is in a room.</p>
+      <div class="card solid" style="margin-bottom:.75rem"><p><strong>0x00124b0000000001</strong> <span class="muted">light · Philips LCA001 · <code>0x00124b0000000001</code></span></p><div class="fields" style="margin:0"><label class="field">Name<input class="input" placeholder="e.g. Desk lamp"></label><label class="field">Room<select class="input"><option>choose a room</option></select></label><label class="field">or a new room<input class="input" placeholder="e.g. Living room"></label><button class="btn primary">Save</button></div></div>
+      <div class="card solid"><p><strong>0x00124b0000000002</strong> <span class="muted">socket · IKEA TRADFRI outlet · <code>0x00124b0000000002</code></span></p><div class="fields" style="margin:0"><label class="field">Name<input class="input" placeholder="e.g. Desk lamp"></label><label class="field">Room<select class="input"><option>choose a room</option></select></label><label class="field">or a new room<input class="input" placeholder="e.g. Living room"></label><button class="btn primary">Save</button></div></div>
+    </section>
+    <div class="card-grid wide">
+      <section class="card"><div class="section-head"><h2><a href="#" style="color:inherit;text-decoration:none">Living room</a></h2><span class="muted">4 devices</span></div>
+        <ul class="rows">
+          <li><span class="row-icon"><span class="swatch" style="background:#ffd6a0"></span></span><div class="row-main"><a class="row-title" href="#">Floor lamp</a><span class="row-sub">light · Floor lamp</span><span class="row-facts">LCA001 by Philips · link 180 · reported 12 s ago</span></div><div class="row-state">on, 40%, 2700 K</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp" aria-pressed="true" aria-label="Switch Floor lamp off"></button></span></div></li>
+          <li><span class="row-icon"><span class="swatch" style="background:#d9542b"></span></span><div class="row-main"><a class="row-title" href="#">Reading lamp</a><span class="row-sub">light · Reading lamp</span><span class="row-facts">LCT015 by Philips · link 156 · reported 4 s ago</span></div><div class="row-state">on, 60%</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp" aria-pressed="true"></button></span></div></li>
+          <li><span class="row-icon"><svg class="icon"><use href="#i-lamp"/></svg></span><div class="row-main"><a class="row-title" href="#">Shelf</a><span class="row-sub">light · Shelf</span><span class="row-facts">LWB010 by Philips · link 92 · reported 3 min ago</span></div><div class="row-state">off</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp"></button></span></div></li>
+          <li><span class="row-icon"><svg class="icon"><use href="#i-socket"/></svg></span><div class="row-main"><a class="row-title" href="#">TV socket</a><span class="row-sub">socket · TV socket</span><span class="row-facts">E1603 by IKEA · link 201</span></div><div class="row-state">on</div><div class="row-actions"><span class="switch-wrap"><button class="switch" aria-pressed="true"></button></span></div></li>
+        </ul></section>
+      <section class="card"><div class="section-head"><h2><a href="#" style="color:inherit;text-decoration:none">Kitchen</a></h2><span class="muted">3 devices</span></div>
+        <ul class="rows">
+          <li><span class="row-icon"><svg class="icon"><use href="#i-lamp"/></svg></span><div class="row-main"><a class="row-title" href="#">Ceiling</a><span class="row-sub">light · Ceiling</span><span class="row-facts">LWA004 by Philips · link 140</span></div><div class="row-state"><span class="badge"><span class="dot"></span>not seen yet</span> no state reported yet</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp unknown" title="State unknown"></button></span></div></li>
+          <li><span class="row-icon"><span class="swatch" style="background:#fff3d6"></span></span><div class="row-main"><a class="row-title" href="#">Counter</a><span class="row-sub">light · Counter</span><span class="row-facts">LST002 by Philips · link 167 · reported 20 s ago</span></div><div class="row-state">on, 100%, 4000 K</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp" aria-pressed="true"></button></span></div></li>
+          <li><span class="row-icon"><svg class="icon"><use href="#i-other"/></svg></span><div class="row-main"><a class="row-title" href="#">Motion sensor</a><span class="row-sub">other · Motion sensor</span><span class="row-facts">SML001 by Philips · <span class="badge warn">battery 12%</span> · link 88</span></div><div class="row-state">reported, but nothing switchable</div><div class="row-note muted" style="grid-column:3;font-size:var(--t-s)">Cannot be switched</div></li>
+        </ul></section>
+      <section class="card"><div class="section-head"><h2><a href="#" style="color:inherit;text-decoration:none">Bedroom</a></h2><span class="muted">2 devices</span></div>
+        <ul class="rows">
+          <li><span class="row-icon"><svg class="icon"><use href="#i-lamp"/></svg></span><div class="row-main"><a class="row-title" href="#">Bedside left</a><span class="row-sub">light · Bedside left</span><span class="row-facts">LWA001 by Philips · link 120 · reported 1 min ago</span></div><div class="row-state">off</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp"></button></span></div></li>
+          <li class="offline"><span class="row-icon"><svg class="icon"><use href="#i-lamp"/></svg></span><div class="row-main"><a class="row-title" href="#">Bedside right</a><span class="row-sub">light · Bedside right</span><span class="row-facts">LWA001 by Philips · reported 2 d ago</span></div><div class="row-state"><span class="badge err">offline</span> off</div><div class="row-actions"><span class="switch-wrap"><button class="switch lamp" disabled></button></span></div></li>
+        </ul></section>
+    </div>
+    <details style="margin:0 0 1.5rem"><summary class="muted" style="cursor:pointer;min-height:var(--tap);display:flex;align-items:center">Other devices without a room (3)</summary></details>
+  </main>
+</div>
+</template>
+
+<template id="s-lights-device" data-title="Device detail" data-app="lights" data-density="" data-nav="devices">
+<div class="screen app-lights"><div class="backdrop"></div><!--bar-->
+  <main class="page">
+    <a class="crumb" href="#"><svg class="icon"><use href="#i-back"/></svg>Living room</a>
+    <div class="page-head" style="margin-bottom:1rem;align-items:center"><h1>Floor lamp</h1><span class="badge ok">online</span></div>
+    <div class="grid-2">
+      <section class="card"><div class="section-head"><h2>Controls</h2><span class="muted" style="font-size:var(--t-s)"><span class="swatch" style="background:#ffd6a0"></span> on, 40%, 2700 K</span></div>
+        <div class="segmented" style="margin-bottom:1rem"><button aria-pressed="true">On</button><button>Off</button><button>Toggle</button></div>
+        <div class="slider"><label>Brightness <output>40 %</output></label><input type="range" value="40"><button class="btn sm">Set</button></div>
+        <div class="slider kelvin"><label>Colour temperature <output>2700 K</output></label><input type="range" value="30"><button class="btn sm">Set</button></div>
+        <div class="fields"><label class="field">Colour<input class="input" type="color" value="#ffd6a0" style="width:3.5rem;padding:2px"></label><label class="field">Transition<input class="input" value="0.5 s" style="width:6rem"></label><button class="btn sm">Set colour</button></div>
+        <div class="actions"><button class="btn">Ask the device for its state</button><span class="muted" style="font-size:var(--t-s)">Confirmed: on, 40%</span></div>
+        <details style="margin-top:.75rem"><summary class="muted" style="cursor:pointer;min-height:var(--tap);display:flex;align-items:center">Everything it reported</summary><pre>{ "state": "ON", "brightness": 102, "color_temp": 370, "linkquality": 180 }</pre></details>
+      </section>
+      <section class="card"><h2>Names and room</h2>
+        <div class="fields"><label class="field grow">Name<input class="input" value="Floor lamp"></label></div>
+        <div class="fields"><label class="field">Room<select class="input"><option>Living room</option><option>Kitchen</option></select></label><label class="field">or a new room<input class="input" placeholder="e.g. Living room"></label></div>
+        <label class="field" style="margin-bottom:.75rem">Aliases <span class="hint">One per line, or separated by commas: what else people call it.</span><textarea class="input">standing lamp, big lamp</textarea></label>
+        <div class="actions"><button class="btn primary">Save</button></div>
+      </section>
+    </div>
+    <section class="card"><h2>About</h2><dl class="facts"><dt>Model</dt><dd>Philips LCA001</dd><dt>zigbee2mqtt name</dt><dd><code>Floor lamp</code></dd><dt>IEEE address</dt><dd><code>0x00124b0000000001</code></dd><dt>Kind</dt><dd>light</dd><dt>State reports</dt><dd>set up on 2026-10-18, every change and at least every 5 min</dd></dl></section>
+    <section class="card danger"><h2>Remove</h2><p class="soft">Take it off the zigbee network, for good. Its names are forgotten.</p><a class="btn danger" href="#">Remove this device…</a></section>
+  </main>
+</div>
+</template>
+
+<template id="s-lights-login" data-title="Lights · login" data-app="lights" data-density="" data-nav="">
+<div class="screen app-lights"><div class="backdrop"></div>
+  <div class="login-wrap"><form class="login" style="--hue:40">
+    <span class="mark">💡</span><h1>lights</h1><p class="sub">lights.my-castle.net</p>
+    <button class="btn primary" type="button">Log in with a passkey</button>
+    <p class="muted" style="margin:0;font-size:var(--t-xs)">or with the password</p>
+    <label class="field">Username<input class="input" autocomplete="username"></label>
+    <label class="field">Password<input class="input" type="password"></label>
+    <button class="btn" type="button">Log in</button>
+    <p class="foot">The owner logs in with a passkey. A guest's password switches the lamps only.</p>
+    <a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Back to the castle</span></a>
+  </form></div>
+</div>
+</template>
+<!-- =================== MAIA =================== -->
+<template id="t-maia-shell">
+  <header class="appbar"><button class="icon-btn" style="border:0;background:none" aria-label="Menu"><svg class="icon"><use href="#i-menu"/></svg></button><span class="avatar sm feel-pos-1">M</span><span class="appbar-title" data-title></span><a class="home-link" href="#" aria-label="Home"><svg class="icon"><use href="#i-home"/></svg></a><button class="icon-btn" style="border:0;background:none" aria-label="Refresh"><svg class="icon"><use href="#i-refresh"/></svg></button></header>
+  <aside class="sidenav">
+    <a class="home-link" href="#" style="margin:.75rem .75rem 0"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a>
+    <a class="brand" href="#"><span class="avatar feel-pos-1">M</span><span><span class="brand-name">MAIA</span><span class="brand-sub">Admin console</span></span></a>
+    <nav aria-label="Sections">
+      <ul><li><a class="nav-link" href="#" data-nav="overview"><svg class="icon"><use href="#i-overview"/></svg><span class="label">Overview</span></a></li></ul>
+      <h2 class="nav-h">People</h2>
+      <ul><li><a class="nav-link" href="#" data-nav="karma"><svg class="icon"><use href="#i-karma"/></svg><span class="label">Karma v2</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-rules"/></svg><span class="label">Karma rules</span></a></li></ul>
+      <h2 class="nav-h">Maia</h2>
+      <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-mood"/></svg><span class="label">Mood</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-state"/></svg><span class="label">State</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-conv"/></svg><span class="label">Conversations</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-replay"/></svg><span class="label">Replays</span></a></li><li><a class="nav-link" href="#" data-nav="settings"><svg class="icon"><use href="#i-sliders"/></svg><span class="label">Sorter settings</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-models"/></svg><span class="label">Models</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-memory"/></svg><span class="label">Context &amp; memory</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-tools"/></svg><span class="label">Tools</span></a></li></ul>
+      <h2 class="nav-h">Connections</h2>
+      <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-discord"/></svg><span class="label">Discord</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-sched"/></svg><span class="label">Scheduler</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-mcp"/></svg><span class="label">MCP servers</span><span class="nav-badge">1</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-plugins"/></svg><span class="label">Plugins</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-puppet"/></svg><span class="label">Puppet</span></a></li></ul>
+      <h2 class="nav-h">Plugin panels</h2>
+      <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-panel"/></svg><span class="label">notes</span></a></li></ul>
+    </nav>
+    <div class="sidenav-foot">
+      <div style="font-size:var(--t-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Theme</div>
+      <div class="segmented" style="align-self:stretch;display:flex"><button style="flex:1" aria-pressed="true">Auto</button><button style="flex:1">Light</button><button style="flex:1">Dark</button></div>
+      <button class="btn ghost sm"><svg class="icon" style="width:1rem;height:1rem"><use href="#i-refresh"/></svg>Refresh</button>
+    </div>
+  </aside>
+</template>
+
+<template id="s-maia-overview" data-title="maia · Overview" data-app="maia" data-density="dense" data-nav="overview">
+<div class="screen app-maia with-sidenav" data-density="dense"><div class="backdrop quiet"></div><!--shell-->
+  <main class="page">
+    <header class="page-head"><h1>Overview</h1><p class="lead">How Maia is doing, and what needs you.</p></header>
+    <div class="card-grid" style="--card-min:20rem">
+      <div class="card"><div style="display:flex;align-items:center;gap:1rem"><span class="avatar lg feel-pos-1">M</span><div><div style="font-size:2.125rem;font-weight:700;letter-spacing:-.02em;line-height:1" class="num">41</div><p class="soft" style="margin:.35rem 0 .25rem">In a good mood. Up 6 since the morning: a kind word from Alice.</p><a href="#">Mood and its log</a></div></div></div>
+      <div class="card"><h2>Needs attention</h2>
+        <div class="note err" style="margin-bottom:.5rem"><span class="what">MCP · weather</span><span class="why">connection refused after 3 tries</span><a href="#">Open</a></div>
+        <div class="note warn" style="margin:0"><span class="what">Plugin · feeds</span><span class="why">breaker tripped after 5 failed ticks: 429 Too Many Requests</span><a href="#">Open</a></div></div>
+      <div class="card"><h2>Settings</h2><p class="soft">3 settings changed since the last restart.</p><div class="note warn" style="margin:0"><span class="why">A restart applies them.</span><button class="btn primary sm">Restart now</button></div></div>
+    </div>
+    <h2 class="section-h">At a glance</h2>
+    <div class="stats">
+      <a class="stat" href="#"><span class="label">People with karma</span><span class="value">14</span><span class="sub">karma v2 is scoring</span></a>
+      <a class="stat" href="#"><span class="label">Scheduled tasks</span><span class="value">6</span><span class="sub">of 8 active · next in 12 min</span></a>
+      <a class="stat" href="#"><span class="label">MCP servers</span><span class="value">4</span><span class="sub">of 5 connected · 61 tools</span></a>
+      <a class="stat" href="#"><span class="label">Plugins</span><span class="value">7</span><span class="sub">of 7 loaded · 19 tools</span></a>
+      <a class="stat" href="#"><span class="label">Conversation sorter</span><span class="value">92 %</span><span class="sub">agreed with the replay</span></a>
+      <a class="stat" href="#"><span class="label">State fields</span><span class="value">11</span><span class="sub">2 expire within the hour</span></a>
+      <a class="stat" href="#"><span class="label">Puppet clients</span><span class="value">2</span><span class="sub">tokens issued</span></a>
+    </div>
+    <h2 class="section-h">Turn timing</h2>
+    <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th>stage</th><th class="num">turns</th><th class="num">p50</th><th class="num">p90</th></tr></thead><tbody>
+      <tr><td class="lead">whole turn</td><td class="num" data-label="turns">38</td><td class="num" data-label="p50">2.8 s</td><td class="num" data-label="p90">6.1 s</td></tr>
+      <tr><td class="lead">context build</td><td class="num" data-label="turns">38</td><td class="num" data-label="p50">0.3 s</td><td class="num" data-label="p90">0.6 s</td></tr>
+      <tr><td class="lead">model</td><td class="num" data-label="turns">38</td><td class="num" data-label="p50">2.1 s</td><td class="num" data-label="p90">5.0 s</td></tr>
+      <tr><td class="lead">tool calls</td><td class="num" data-label="turns">12</td><td class="num" data-label="p50">0.9 s</td><td class="num" data-label="p90">3.4 s</td></tr></tbody></table></div></div>
+  </main>
+</div>
+</template>
+
+<template id="s-maia-karma" data-title="maia · Karma v2" data-app="maia" data-density="dense" data-nav="karma">
+<div class="screen app-maia with-sidenav" data-density="dense"><div class="backdrop quiet"></div><!--shell-->
+  <main class="page">
+    <header class="page-head"><h1>Karma v2</h1><p class="lead">How she feels about each person, from the rulebook. Scores move with what people say and do.</p></header>
+    <div class="toolbar"><input class="input" placeholder="Filter people…" aria-label="Filter"><span class="meta">14 people · updated 2 min ago</span><div class="segmented"><button aria-pressed="true">All</button><button>Discord</button><button>Puppet</button></div></div>
+    <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th>person <span class="sort">▲</span></th><th class="num">karma</th><th>band</th><th>last change</th><th class="num">24 h</th><th>linked</th><th></th></tr></thead><tbody>
+      <tr><td class="lead">Alice<span class="sub">discord · 2 accounts</span></td><td class="num" data-label="karma">+78</td><td data-label="band"><span class="badge ok">excellent</span></td><td data-label="last change" class="muted">4 min ago · +2 thanked her</td><td class="num" data-label="24 h" style="color:var(--ok-text)">+6</td><td data-label="linked"><span class="badge ok"><span class="dot"></span>linked</span></td><td class="end"><button class="btn ghost sm">Merge…</button></td></tr>
+      <tr><td class="lead">Bob<span class="sub">discord</span></td><td class="num" data-label="karma">+41</td><td data-label="band"><span class="badge ok">good</span></td><td data-label="last change" class="muted">1 h ago · +1 shared a link</td><td class="num" data-label="24 h" style="color:var(--ok-text)">+1</td><td data-label="linked"><span class="badge ok"><span class="dot"></span>linked</span></td><td class="end"><button class="btn ghost sm">Merge…</button></td></tr>
+      <tr><td class="lead">guest-0001<span class="sub">puppet</span></td><td class="num" data-label="karma">0</td><td data-label="band"><span class="badge">neutral</span></td><td data-label="last change" class="muted">never</td><td class="num" data-label="24 h">0</td><td data-label="linked"><span class="badge">unlinked</span></td><td class="end"><button class="btn ghost sm">Merge…</button></td></tr>
+      <tr><td class="lead">Carol<span class="sub">discord</span></td><td class="num" data-label="karma">−12</td><td data-label="band"><span class="badge warn">grumpy</span></td><td data-label="last change" class="muted">yesterday · −4 rude</td><td class="num" data-label="24 h" style="color:var(--err-text)">−4</td><td data-label="linked"><span class="badge ok"><span class="dot"></span>linked</span></td><td class="end"><button class="btn ghost sm">Merge…</button></td></tr>
+      <tr><td class="lead">spambot_42<span class="sub">discord</span></td><td class="num" data-label="karma">−63</td><td data-label="band"><span class="badge err">foul</span></td><td data-label="last change" class="muted">3 d ago · −10 spam</td><td class="num" data-label="24 h">0</td><td data-label="linked"><span class="badge">unlinked</span></td><td class="end"><button class="btn ghost sm">Merge…</button></td></tr></tbody></table></div>
+      <div class="pager"><span>5 of 14 people</span><span class="pages"><a href="#">‹</a><a href="#" aria-current="page">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></span></div></div>
+    <h2 class="section-h">Recent changes</h2>
+    <div class="card solid"><div class="table-wrap"><table class="data"><thead><tr><th>when</th><th>person</th><th class="num">Δ</th><th>why</th><th>by</th></tr></thead><tbody>
+      <tr><td class="muted num">09:08</td><td>Alice</td><td class="num" style="color:var(--ok-text)">+2</td><td class="soft">thanked her for the weather</td><td class="muted">rule R4</td></tr>
+      <tr><td class="muted num">08:41</td><td>Bob</td><td class="num" style="color:var(--ok-text)">+1</td><td class="soft">shared a link she liked</td><td class="muted">rule R2</td></tr>
+      <tr><td class="muted num">yesterday</td><td>Carol</td><td class="num" style="color:var(--err-text)">−4</td><td class="soft">rude in #general</td><td class="muted">rule R9</td></tr></tbody></table></div></div>
+  </main>
+</div>
+</template>
+
+<template id="s-maia-settings" data-title="maia · Sorter settings" data-app="maia" data-density="dense" data-nav="settings">
+<div class="screen app-maia with-sidenav" data-density="dense"><div class="backdrop quiet"></div><!--shell-->
+  <main class="page">
+    <header class="page-head"><h1>Sorter settings</h1><p class="lead">How the conversation sorter decides which messages belong together. Applied live.</p><div class="actions"><button class="btn ghost">Reset to defaults</button></div></header>
+    <div class="note warn"><span class="why">3 settings changed since the last restart; a restart applies them.</span><button class="btn primary sm">Restart now</button></div>
+    <div class="card"><h2>Grouping</h2>
+      <div class="fields"><label class="field">Gap that starts a new set<input class="input" value="20 min"><span class="hint">Silence longer than this begins a new conversation.</span></label><label class="field">Minimum messages<input class="input" value="3"></label><label class="field">Window<select class="input"><option>24 hours</option><option>7 days</option></select></label></div>
+      <label class="check"><input type="checkbox" checked> Let the model split a set when topics change</label>
+      <label class="check"><input type="checkbox"> Keep bot messages in the sets</label>
+      <div class="actions"><button class="btn primary">Save</button><span class="muted" style="font-size:var(--t-xs)">Saved 2 min ago</span></div></div>
+    <div class="card"><h2>Model</h2>
+      <div class="fields"><label class="field grow">Model for the split decision<select class="input"><option>claude-haiku-5-5 via llm-proxy</option></select></label><label class="field">Temperature<input class="input" value="0.2"></label></div>
+      <label class="field">System prompt <span class="hint">What the splitter is told before it sees a set.</span><textarea class="input" style="min-height:7rem">You sort chat messages into conversations. Answer with the ids that belong together…</textarea></label>
+      <div class="actions"><button class="btn primary">Save</button></div></div>
+    <div class="card solid"><h2>Last replay</h2><dl class="facts"><dt>Run</dt><dd><code>r-2026-10-24-3</code> · 1 204 messages · 92 % agreement</dd><dt>Took</dt><dd>41 s</dd><dt>Differs on</dt><dd>#projects (3 sets), #general (1 set)</dd></dl><pre class="log"><span class="t">10:14:02</span> set 7 <span class="k">split</span> at msg 1193 (topic change: travel → dinner)
+<span class="t">10:14:02</span> set 8 kept
+<span class="t">10:14:03</span> <span class="e">set 9: model answered with an id not in the set, kept as is</span></pre></div>
+  </main>
+</div>
+</template>
+
+<!-- =================== LLM-PROXY =================== -->
+<template id="t-llm-bar">
+  <header class="topbar"><a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a><a class="brand" href="#">llm-proxy</a>
+    <nav class="tabs" aria-label="Pages">
+      <a href="#" data-nav="overview"><svg class="icon"><use href="#i-overview"/></svg><span>Overview</span></a>
+      <a href="#" data-nav="models"><svg class="icon"><use href="#i-models"/></svg><span>Models</span></a>
+      <a href="#" data-nav="backends"><svg class="icon"><use href="#i-mcp"/></svg><span>Backends</span></a>
+      <a href="#" data-nav="keys"><svg class="icon"><use href="#i-key"/></svg><span>API Keys</span></a>
+      <a href="#" data-nav="usage"><svg class="icon"><use href="#i-state"/></svg><span>Usage</span></a>
+    </nav><span class="spacer"></span>
+    <div class="side" style="position:relative"><button class="pill-btn">admin <span class="caret" style="display:inline-block;width:0;height:0;border:4px solid transparent;border-top-color:currentColor;border-bottom:0;margin-left:.4rem;vertical-align:middle"></span></button></div></header>
+</template>
+
+<template id="s-llm-overview" data-title="llm-proxy · Overview" data-app="llm" data-density="dense" data-nav="overview">
+<div class="screen app-llm" data-density="dense"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page">
+    <header class="page-head"><h1>Overview</h1></header>
+    <div class="stats"><a class="stat" href="#"><span class="value">4</span><span class="label">backends</span></a><a class="stat" href="#"><span class="value">12</span><span class="label">models</span></a><a class="stat" href="#"><span class="value">7</span><span class="label">API keys</span></a><a class="stat" href="#"><span class="value">3</span><span class="label">users</span></a><a class="stat" href="#"><span class="value">1 842</span><span class="label">requests 24 h</span></a><a class="stat" href="#"><span class="value">0.4 %</span><span class="label">errors 24 h</span></a></div>
+    <h2 class="section-h">Get started</h2>
+    <div class="card"><ol class="checklist">
+      <li><span class="n done">✓</span><span class="sp"><b>Add a backend</b><span class="hint" style="margin:0">The upstream server that actually runs a model (vLLM, OpenAI, OpenRouter, Ollama…).</span></span></li>
+      <li><span class="n done">✓</span><span class="sp"><b>Add a model</b><span class="hint" style="margin:0">The name clients send in the model field, routed to a backend.</span></span></li>
+      <li><span class="n cur">3</span><span class="sp"><b>Create an API key</b><span class="hint" style="margin:0">Pick which models the key may call while creating it.</span></span><a class="btn primary sm" href="#">Create key</a></li></ol></div>
+    <h2 class="section-h">Recent requests</h2>
+    <div class="card solid"><ul class="rows">
+      <li style="grid-template-columns:1fr auto;min-height:0;padding:.5rem 0"><div class="row-main"><a class="row-title" href="#">llama3-8b <span class="muted" style="font-weight:400">→ gpu-vllm</span></a></div><span class="muted num">just now</span></li>
+      <li style="grid-template-columns:1fr auto;min-height:0;padding:.5rem 0"><div class="row-main"><a class="row-title" href="#">kokoro <span class="muted" style="font-weight:400">→ kokoro</span></a></div><span class="muted num">2 minutes ago</span></li>
+      <li style="grid-template-columns:1fr auto;min-height:0;padding:.5rem 0"><div class="row-main"><a class="row-title" href="#">claude-haiku-5-5 <span class="muted" style="font-weight:400">→ anthropic</span></a></div><span class="muted num">9 minutes ago</span></li>
+      <li style="grid-template-columns:1fr auto;min-height:0;padding:.5rem 0"><div class="row-main"><a class="row-title" href="#">whisper-large-v3 <span class="muted" style="font-weight:400">→ speaches</span></a></div><span class="muted num">1 hour ago</span></li></ul></div>
+    <h2 class="section-h">Remap proposals</h2>
+    <p class="hint">When an MCP agent proposes pointing a model at another backend, it gets a confirmation link. Open it, or paste it here, to review and confirm.</p>
+    <div class="toolbar" style="justify-content:flex-start"><input class="input grow" placeholder="…/ui#remap=… or the token" style="flex:1"><button class="btn">Review</button></div>
+  </main>
+</div>
+</template>
+
+<template id="s-llm-models" data-title="llm-proxy · Models (panel open)" data-app="llm" data-density="dense" data-nav="models">
+<div class="screen app-llm" data-density="dense"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page">
+    <header class="page-head"><h1>Models <span class="badge" style="vertical-align:middle">12</span></h1><div class="actions"><a class="btn primary" href="#">Add model</a></div><p class="lead">What clients put in the OpenAI model field. Each model routes to a backend; a public model needs no API key.</p></header>
+    <div class="toolbar"><input class="input" placeholder="Filter models…"><div class="segmented"><button aria-pressed="true">All</button><button>chat</button><button>tts</button><button>stt</button><button>image</button></div></div>
+    <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th></th><th>model</th><th>type</th><th>access</th><th>backend</th><th>last use</th><th>enabled</th><th></th></tr></thead><tbody>
+      <tr class="hl"><td class="trail"><button class="btn link" aria-label="routes">−</button></td><td class="lead">llama3-8b<span class="sub">Llama 3 8B</span></td><td data-label="type">chat</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">gpu-vllm<span class="sub">vllm · http://gpu-box:8000</span></td><td data-label="last use" class="muted">just now</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td colspan="8" style="background:var(--surface-2)"><span class="hint" style="display:block;margin:0 0 .25rem">Routes (lower priority is preferred; weight balances within a priority)</span><ul class="chips" style="margin:0"><li><b class="muted">p0 · w1</b> gpu-vllm <span class="muted">· last use just now</span></li><li><b class="muted">p1 · w1</b> openrouter <span class="muted">· never used</span></li></ul></td></tr>
+      <tr><td class="trail"><button class="btn link" aria-label="routes">+</button></td><td class="lead">kokoro</td><td data-label="type">tts</td><td data-label="access"><span class="badge info">public</span></td><td data-label="backend">kokoro<span class="sub">custom · http://tts-box:8880</span></td><td data-label="last use" class="muted">2 minutes ago</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"><button class="btn link" aria-label="routes">+</button></td><td class="lead">claude-haiku-5-5</td><td data-label="type">chat</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">anthropic<span class="sub">openai-compatible · https://api.anthropic.com</span></td><td data-label="last use" class="muted">9 minutes ago</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"></td><td class="lead">whisper-large-v3<span class="sub">Whisper large v3 turbo</span></td><td data-label="type">stt</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">speaches<span class="sub">custom · http://stt-box:8000</span> <span class="badge warn">type mismatch</span></td><td data-label="last use" class="muted">1 hour ago</td><td data-label="enabled"><button class="switch"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"></td><td class="lead">flux-dev</td><td data-label="type">image</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend"><span class="muted">- no route -</span></td><td data-label="last use" class="muted">never</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr></tbody></table></div>
+      <div class="pager"><span>5 of 12 models</span><span class="pages"><a href="#">‹</a><a href="#" aria-current="page">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></span></div></div>
+  </main>
+  <div class="scrim"></div>
+  <aside class="sheet" role="dialog" aria-labelledby="sheet-t"><div class="sheet-head"><h2 id="sheet-t">Edit model · llama3-8b</h2><button class="btn ghost round" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="sheet-body">
+      <label class="field" style="margin:.75rem 0">Model id<input class="input" value="llama3-8b"></label>
+      <label class="field" style="margin:0 0 .75rem">Display name<input class="input" value="Llama 3 8B"><span class="hint">optional</span></label>
+      <label class="field" style="margin:0 0 .75rem">Type<select class="input"><option>Text (chat + completions)</option></select></label>
+      <label class="field" style="margin:0 0 .75rem">Max context tokens<input class="input" value="8192"></label>
+      <label class="check"><input type="checkbox" checked> Enabled</label>
+      <label class="check"><input type="checkbox"> Public — callable without an API key</label>
+      <p class="hint">Anyone who can reach the proxy can call a public model, and such calls are not recorded in usage.</p>
+      <div class="actions"><button class="btn primary">Save</button><button class="btn ghost">Cancel</button><span style="flex:1"></span><button class="btn link" style="color:var(--err-text)">Delete…</button></div>
+    </div></aside>
+  <div class="toast ok">llama3-8b saved</div>
+</div>
+</template>
+
+<template id="s-llm-login" data-title="llm-proxy · login" data-app="llm" data-density="dense" data-nav="">
+<div class="screen app-llm" data-density="dense"><div class="backdrop"></div>
+  <div class="login-wrap"><form class="login" style="--hue:260">
+    <span class="mark">🧠</span><h1>llm-proxy</h1><p class="sub">Admin</p>
+    <label class="field">Username<input class="input" autocomplete="username"></label>
+    <label class="field">Password<input class="input" type="password"></label>
+    <button class="btn primary" type="button">Log in</button>
+    <a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Back to the castle</span></a>
+  </form></div>
+</div>
+</template>
+
+<script>
+(() => {
+  "use strict";
+  const $ = s => document.querySelector(s);
+  const state = { screen: "s-home", theme: "both", frame: "both", art: "quiet" };
+  const screens = [...document.querySelectorAll('template[id^="s-"]')];
+  const screensBar = $("#screens");
+  let lastApp = null;
+  for (const t of screens) {
+    if (t.dataset.app !== lastApp) { const l = document.createElement("span"); l.className = "app"; l.textContent = t.dataset.app ? t.dataset.app : ""; screensBar.appendChild(l); lastApp = t.dataset.app; }
+    const b = document.createElement("button"); b.textContent = t.dataset.title; b.dataset.screen = t.id; screensBar.appendChild(b);
+  }
+  function screenHtml(t) {
+    let html = t.innerHTML;
+    const bar = t.dataset.app === "lights" ? $("#t-lights-bar") : t.dataset.app === "llm" ? $("#t-llm-bar") : null;
+    if (bar) html = html.replace("<!--bar-->", bar.innerHTML);
+    if (t.dataset.app === "maia") html = html.replace("<!--shell-->", $("#t-maia-shell").innerHTML);
+    return html;
+  }
+  function frame(kind, theme) {
+    const t = document.getElementById(state.screen);
+    const wrap = document.createElement("div"); wrap.className = "frame-wrap";
+    const f = document.createElement("div"); f.className = "frame " + kind; if (theme) f.dataset.theme = theme;
+    if (t.dataset.density) f.dataset.density = t.dataset.density;
+    f.innerHTML = screenHtml(t);
+    const nav = t.dataset.nav; if (nav) f.querySelectorAll(`[data-nav="${nav}"]`).forEach(a => a.setAttribute("aria-current", "page"));
+    // a phone's bottom bar is position: fixed in an app; inside a frame it must leave the sticky bar to sit at the frame's bottom
+    if (kind === "phone") { const tabs = f.querySelector("nav.tabs"); if (tabs) f.appendChild(tabs); }
+    // the maia app bar's title
+    const title = f.querySelector(".appbar-title"); if (title) title.textContent = (t.dataset.title.split("· ")[1] || "");
+    // castle behind dense apps: the three choices
+    if (t.dataset.density === "dense") { const bd = f.querySelector(".backdrop"); if (bd && !t.id.endsWith("login")) { bd.className = "backdrop" + (state.art === "quiet" ? " quiet" : state.art === "off" ? " off" : ""); } }
+    const cap = document.createElement("div"); cap.className = "cap"; cap.textContent = (kind === "phone" ? "Phone 390 px" : "Desktop 1180 px") + (theme ? " · " + theme : " · system");
+    wrap.append(f, cap); return wrap;
+  }
+  function render() {
+    const stage = $("#stage"); stage.replaceChildren();
+    const kinds = state.frame === "both" ? ["phone", "desk"] : [state.frame];
+    const themes = state.theme === "both" ? ["light", "dark"] : [state.theme === "system" ? null : state.theme];
+    document.documentElement.dataset.theme = state.theme === "both" || state.theme === "system" ? "" : state.theme;
+    for (const th of themes) for (const k of kinds) stage.appendChild(frame(k, th));
+    document.querySelectorAll("#screens button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.screen === state.screen)));
+    document.querySelectorAll("#themes button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.theme === state.theme)));
+    document.querySelectorAll("#frames button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.frame === state.frame)));
+    document.querySelectorAll("#art button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.art === state.art)));
+    document.documentElement.style.setProperty("--zoom", $("#zoom").value);
+    try { localStorage.setItem("castle-mockup", JSON.stringify(state)); } catch (_) {}
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("button[data-screen],button[data-theme],button[data-frame],button[data-art]"); if (!b) return;
+    if (b.dataset.screen) state.screen = b.dataset.screen; if (b.dataset.theme) state.theme = b.dataset.theme; if (b.dataset.frame) state.frame = b.dataset.frame; if (b.dataset.art) state.art = b.dataset.art;
+    render();
+  });
+  $("#zoom").addEventListener("change", render);
+  try { Object.assign(state, JSON.parse(localStorage.getItem("castle-mockup") || "{}")); } catch (_) {}
+  if (!document.getElementById(state.screen)) state.screen = "s-home";
+  render();
+})();
+</script>
+</body>
+</html>

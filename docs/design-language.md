@@ -140,6 +140,10 @@ Declared beside the shared ones, by the app that needs them, never shared:
   become aliases of the shared tokens (`--border: var(--line)` and so on), so
   a panel that reads them keeps working and follows the new values.
 
+Two more are set on an element by the markup, not on `:root`: `--hue` (a
+number, the hue of a tile icon's or login mark's tile; 220 if unset) and
+`--fill` (a lit lamp tile's reported colour).
+
 ## 3. Themes
 
 - Three states: **system** (follow the OS), **light**, **dark**. System is the
@@ -178,7 +182,7 @@ Declared beside the shared ones, by the app that needs them, never shared:
 | `--tap` (mouse) | 2.5rem | 2.25rem |
 | `--tap` (touch) | 2.75rem | 2.75rem |
 | `--page` | 72rem | 80rem |
-| table cell padding | .75rem 1rem | .5rem .75rem |
+| table cell padding | `--s2 --s3` (.5rem .75rem) | the same; dense comes from the smaller type |
 | the castle | full | faint (`.backdrop.quiet`) |
 
 Nothing else changes: same tokens, same components, same radii. A dense app on
@@ -233,8 +237,9 @@ Each entry: what it is, how it is drawn, which app has it today.
   menu), `.pill-btn` (text in a glass pill, for home's Edit and llm-proxy's
   user menu). Pressed or open: strong glass, accent text, shadow.
 - **Menu** (`.menu`): a strong-glass dropdown with 10 px radius; items
-  `--tap` high; a hairline before "Log out". Lights' More menu and llm-proxy's
-  user menu.
+  `--tap` high; a hairline before "Log out". It is absolutely positioned
+  under its control's wrapper, which must be positioned (`position:
+  relative`). Lights' More menu and llm-proxy's user menu.
 - **Tile** (`.tile`): the glass card you tap. Head row (icon disc, name, URL,
   dot), description, metrics strip under a hairline. Hover: strong glass,
   accent border at 45 %, lifted 2 px. Home's cards; a room on lights' rooms

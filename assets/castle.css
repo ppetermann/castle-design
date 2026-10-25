@@ -20,7 +20,8 @@
    An app sets --castle to the URL it serves castle.webp at, e.g.
    :root { --castle: url("/static/castle.webp"); }, and declares its own app
    tokens beside this sheet (lights: --on, --kelvin, --ink-dark, --ink-light;
-   maia: --brand, --brand-text, --brand-soft, --avatar-bg, --feel).
+   maia: --brand, --brand-text, --brand-soft, --avatar-bg, --feel). The markup
+   sets --hue on a tile icon or login mark, and --fill on a lit lamp tile.
 
    Breakpoints: phone width < 48rem; sidebar collapse width < 56rem;
    ultra-wide width >= 100rem.
@@ -226,6 +227,7 @@ nav.tabs > a.more .caret { display: inline-block; width: 0; height: 0; border: 4
   main.page { padding-top: var(--s4); }
   h1 { font-size: var(--t-xl); }
   main.page.hero { padding-top: var(--s5); }
+  .popover { position: fixed; left: var(--s2); right: var(--s2); top: calc(var(--nav-h) + var(--s2)); width: auto; }
 }
 /* narrow: the sidebar becomes a drawer behind a menu button in an app bar */
 @media (width < 56rem) {
@@ -286,6 +288,7 @@ a.tile:hover .url { color: var(--accent-text); }
 .sheet .sheet-head h2 { flex: 1; min-width: 0; }
 .sheet .sheet-body { flex: 1; overflow: auto; padding: var(--s2) var(--s4) var(--s5); }
 .scrim { position: fixed; inset: 0; z-index: 25; background: var(--scrim); }
+/* ---------- 6. text pieces ---------- */
 .section-h { display: flex; align-items: center; gap: var(--s2); margin: var(--s5) 0 var(--s2); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .hint { color: var(--muted); font-size: var(--t-s); max-width: 70ch; margin: 0 0 var(--s3); }

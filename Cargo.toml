@@ -1,0 +1,15 @@
+[package]
+name = "castle-design"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+description = "The castle's design system: the shared stylesheet, the castle picture and the theme cookie, as compile-time constants"
+repository = "https://github.com/ppetermann/castle-design"
+license = "MIT"
+publish = false
+include = ["/src", "/assets", "/README.md", "/CHANGELOG.md", "/LICENSE"]
+
+# No dependencies: the assets are compiled in with include_str!/include_bytes!
+# and the theme cookie helper works on plain strings, so every app can use it
+# with whatever HTTP stack it already has.
+[dependencies]

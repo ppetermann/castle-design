@@ -41,7 +41,8 @@ pub const THEME_COOKIE_DOMAIN: &str = "my-castle.net";
 /// [`THEME_COOKIE_DOMAIN`] or a subdomain of it, so the shared theme cookie
 /// reaches it. Host names are case-insensitive and may end in a root dot, so
 /// `Lights.My-Castle.NET.` counts; a lookalike such as `evilmy-castle.net`
-/// does not.
+/// does not, nor does a host with an empty label (`.my-castle.net`,
+/// `evil..my-castle.net`).
 pub fn is_castle_host(host: &str) -> bool {
     let host = match host.rsplit_once(':') {
         Some((name, port)) if !name.contains(':') && port.bytes().all(|b| b.is_ascii_digit()) => {
@@ -49,7 +50,11 @@ pub fn is_castle_host(host: &str) -> bool {
         }
         _ => host,
     };
-    let host = host.strip_suffix('.').unwrap_or(host).as_bytes();
+    let host = host.strip_suffix('.').unwrap_or(host);
+    if host.split('.').any(str::is_empty) {
+        return false;
+    }
+    let host = host.as_bytes();
     let domain = THEME_COOKIE_DOMAIN.as_bytes();
     match host.len().checked_sub(domain.len()) {
         Some(0) => host.eq_ignore_ascii_case(domain),
@@ -264,6 +269,10 @@ mod tests {
             "",
             ".",
             "localhost:8080",
+            ".my-castle.net",
+            "evil..my-castle.net",
+            "my-castle.net..",
+            "lights.my-castle..net",
         ] {
             assert!(!is_castle_host(host), "{host}");
         }

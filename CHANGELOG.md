@@ -10,7 +10,8 @@ renamed or removed token, class or public item bumps the minor version.
 - `is_castle_host`: whether a host is on the castle domain (so the shared
   theme cookie reaches it), compared ASCII case-insensitively, tolerant of a
   trailing root dot and a port, and rejecting lookalikes such as
-  `evilmy-castle.net`. Apps use it instead of their own case-sensitive check.
+  `evilmy-castle.net` or hosts with an empty label. New in this release;
+  each app adopts it in its own update, replacing its case-sensitive check.
 
 ### Fixed
 

@@ -22,8 +22,13 @@ const APP_TOKENS: &[&str] = &[
 
 /// The stylesheet without its comments.
 fn css_code() -> String {
-    let mut out = String::with_capacity(CSS.len());
-    let mut rest = CSS;
+    strip_comments(CSS)
+}
+
+/// CSS without its comments.
+fn strip_comments(css: &str) -> String {
+    let mut out = String::with_capacity(css.len());
+    let mut rest = css;
     while let Some(start) = rest.find("/*") {
         out.push_str(&rest[..start]);
         let end = rest[start..].find("*/").expect("unterminated comment");
@@ -331,4 +336,78 @@ fn no_mockup_scaffolding_left() {
             "mockup-only {leftover} in castle.css"
         );
     }
+}
+
+/// Every top-level rule in source order: the `@media` query it sits in (if
+/// any) and each of its selectors.
+fn rules(code: &str) -> Vec<(Option<String>, Vec<String>)> {
+    let mut out = Vec::new();
+    let mut media: Option<String> = None;
+    let mut depth = 0;
+    let mut segment = String::new();
+    for c in code.chars() {
+        match c {
+            '{' => {
+                let head = segment.trim().to_owned();
+                if depth == 0 && head.starts_with('@') {
+                    media = Some(head);
+                } else if depth == usize::from(media.is_some()) {
+                    let selectors = head.split(',').map(|s| s.trim().to_owned()).collect();
+                    out.push((media.clone(), selectors));
+                }
+                depth += 1;
+                segment.clear();
+            }
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    media = None;
+                }
+                segment.clear();
+            }
+            ';' => segment.clear(),
+            c => segment.push(c),
+        }
+    }
+    out
+}
+
+#[test]
+fn media_overrides_follow_their_base_rule() {
+    assert_overrides_follow_base("castle.css", &css_code());
+}
+
+#[test]
+fn mockup_overrides_follow_their_base_rule() {
+    let mockup = include_str!("../docs/mockup.html");
+    let start = mockup
+        .find(r#"<style id="castle-css">"#)
+        .expect("mockup sheet")
+        + 23;
+    let end = start
+        + mockup[start..]
+            .find("</style>")
+            .expect("unterminated style");
+    assert_overrides_follow_base("the mockup", &strip_comments(&mockup[start..end]));
+}
+
+/// Fails when an at-rule overrides a selector whose base rule comes later.
+fn assert_overrides_follow_base(sheet: &str, code: &str) {
+    let rules = rules(code);
+    let mut misplaced = Vec::new();
+    for (i, (media, selectors)) in rules.iter().enumerate() {
+        let Some(media) = media else { continue };
+        for selector in selectors {
+            let later_base = rules[i + 1..]
+                .iter()
+                .any(|(m, s)| m.is_none() && s.contains(selector));
+            if later_base {
+                misplaced.push(format!("{selector} in {media}"));
+            }
+        }
+    }
+    assert!(
+        misplaced.is_empty(),
+        "{sheet}: overrides that come before the base rule they override: {misplaced:?}"
+    );
 }

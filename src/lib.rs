@@ -22,7 +22,7 @@ pub const CASTLE_WEBP: &[u8] = include_bytes!("../assets/castle.webp");
 pub const CASTLE_WEBP_TYPE: &str = "image/webp";
 
 /// This crate's version, for a cache-busting query on the asset URLs
-/// (`/static/castle.css?v=0.1.2`).
+/// (`/static/castle.css?v=0.1.3`).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The theme cookie's name.
@@ -36,6 +36,27 @@ pub const THEME_LOCAL_COOKIE: &str = "theme_local";
 /// The domain the theme cookie is set on, so every app under it shares one
 /// choice.
 pub const THEME_COOKIE_DOMAIN: &str = "my-castle.net";
+
+/// Whether `host` (a `Host` header or URL host, with or without a port) is
+/// [`THEME_COOKIE_DOMAIN`] or a subdomain of it, so the shared theme cookie
+/// reaches it. Host names are case-insensitive and may end in a root dot, so
+/// `Lights.My-Castle.NET.` counts; a lookalike such as `evilmy-castle.net`
+/// does not.
+pub fn is_castle_host(host: &str) -> bool {
+    let host = match host.rsplit_once(':') {
+        Some((name, port)) if !name.contains(':') && port.bytes().all(|b| b.is_ascii_digit()) => {
+            name
+        }
+        _ => host,
+    };
+    let host = host.strip_suffix('.').unwrap_or(host).as_bytes();
+    let domain = THEME_COOKIE_DOMAIN.as_bytes();
+    match host.len().checked_sub(domain.len()) {
+        Some(0) => host.eq_ignore_ascii_case(domain),
+        Some(at) => host[at - 1] == b'.' && host[at..].eq_ignore_ascii_case(domain),
+        None => false,
+    }
+}
 
 /// How long a chosen theme is kept: a year, in seconds.
 pub const THEME_COOKIE_MAX_AGE: u32 = 365 * 24 * 60 * 60;
@@ -208,6 +229,44 @@ mod tests {
             Theme::from_cookie_headers(["session=abc; theme_local=light"]),
             Theme::Light
         );
+    }
+
+    #[test]
+    fn an_invalid_shared_cookie_blocks_the_local_one() {
+        assert_eq!(
+            Theme::from_cookie_headers(["theme=purple; theme_local=dark"]),
+            Theme::System
+        );
+        assert_eq!(
+            Theme::from_cookie_headers(["theme_local=dark", "theme="]),
+            Theme::System
+        );
+    }
+
+    #[test]
+    fn recognises_castle_hosts_in_any_case() {
+        for host in [
+            "my-castle.net",
+            "lights.my-castle.net",
+            "Lights.My-Castle.NET",
+            "MY-CASTLE.NET.",
+            "home.my-castle.net.:8443",
+            "home.my-castle.net:443",
+        ] {
+            assert!(is_castle_host(host), "{host}");
+        }
+        for host in [
+            "evilmy-castle.net",
+            "EvilMy-Castle.net",
+            "my-castle.net.evil.example",
+            "my-castle.network",
+            "net",
+            "",
+            ".",
+            "localhost:8080",
+        ] {
+            assert!(!is_castle_host(host), "{host}");
+        }
     }
 
     #[test]

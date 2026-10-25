@@ -167,6 +167,14 @@ number, the hue of a tile icon's or login mark's tile; 220 if unset) and
   Today home sets a host-only cookie and maia and llm-proxy each keep a
   `localStorage` key; those become reads of the shared cookie (a stored local
   choice is migrated once, then dropped).
+- **Never a second `theme`.** A host-only fallback (an app off the castle
+  domain, or one that cannot set the shared cookie) is named `theme_local`,
+  never `theme`. Readers prefer `theme` and use `theme_local` only when
+  `theme` is absent. A legacy host-only `theme` (no `Domain`) is migrated:
+  its value is written to the shared cookie if none exists and the host-only
+  one is expired (`Max-Age=0` without `Domain`). The crate implements all of
+  it: `THEME_LOCAL_COOKIE`, `Theme::set_local_cookie`,
+  `Theme::from_cookie_headers` and `Theme::legacy_cookie_migration`.
 - The page's `<meta name="theme-color">` and the installed app's manifest keep
   following the chosen theme as lights does today.
 

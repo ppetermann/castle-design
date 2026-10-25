@@ -8,7 +8,8 @@
 //!
 //! [`Theme`] reads and writes the one `theme` cookie every app shares on
 //! [`THEME_COOKIE_DOMAIN`], so a choice made in one app's switch holds in all
-//! of them.
+//! of them. A host-only fallback is named [`THEME_LOCAL_COOKIE`], never
+//! `theme`, so the two can never be mistaken for each other.
 
 /// The shared stylesheet: tokens, base, backdrop, shell and components.
 pub const CSS: &str = include_str!("../assets/castle.css");
@@ -21,11 +22,16 @@ pub const CASTLE_WEBP: &[u8] = include_bytes!("../assets/castle.webp");
 pub const CASTLE_WEBP_TYPE: &str = "image/webp";
 
 /// This crate's version, for a cache-busting query on the asset URLs
-/// (`/static/castle.css?v=0.1.1`).
+/// (`/static/castle.css?v=0.1.2`).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The theme cookie's name.
 pub const THEME_COOKIE: &str = "theme";
+
+/// The name of a host-only fallback theme cookie, for an app served off
+/// [`THEME_COOKIE_DOMAIN`] or one that cannot set the shared cookie. Read only
+/// when no [`THEME_COOKIE`] is present.
+pub const THEME_LOCAL_COOKIE: &str = "theme_local";
 
 /// The domain the theme cookie is set on, so every app under it shares one
 /// choice.
@@ -64,14 +70,52 @@ impl Theme {
 
     /// The theme a request's `Cookie` header values ask for; system without a
     /// valid theme cookie. Pass every `Cookie` header the request carries.
+    ///
+    /// The shared `theme` cookie wins over a `theme_local` fallback wherever
+    /// either sits in the headers. When `theme` appears twice (a legacy
+    /// host-only one beside the shared one) the last valid value wins: browsers
+    /// send cookies of the same path oldest first, and the legacy one is the
+    /// older; [`Theme::legacy_cookie_migration`] removes it.
     pub fn from_cookie_headers<'a>(headers: impl IntoIterator<Item = &'a str>) -> Self {
-        headers
-            .into_iter()
-            .flat_map(|v| v.split(';'))
-            .filter_map(|pair| pair.trim().split_once('='))
-            .find(|(name, _)| *name == THEME_COOKIE)
-            .and_then(|(_, value)| Theme::parse(value))
+        let headers: Vec<&str> = headers.into_iter().collect();
+        let read = |name| {
+            let mut values = cookie_values(headers.iter().copied(), name).peekable();
+            values
+                .peek()
+                .is_some()
+                .then(|| values.filter_map(Theme::parse).last())
+        };
+        read(THEME_COOKIE)
+            .or_else(|| read(THEME_LOCAL_COOKIE))
+            .flatten()
             .unwrap_or_default()
+    }
+
+    /// The `Set-Cookie` values that move a legacy host-only `theme` cookie onto
+    /// the shared one; empty when the request carries no `theme` cookie. Pass
+    /// every `Cookie` header the request carries.
+    ///
+    /// A request does not say which cookie is host-only, so: with one `theme`
+    /// cookie its value is written to the shared cookie (a no-op when it was
+    /// the shared one already); with two the shared one exists and keeps its
+    /// value. Either way the host-only `theme` is expired (`Max-Age=0` without
+    /// `Domain`, which leaves the shared cookie alone). Only an app that once
+    /// set a host-only `theme` needs to call this, on its page responses.
+    pub fn legacy_cookie_migration<'a>(headers: impl IntoIterator<Item = &'a str>) -> Vec<String> {
+        let values: Vec<&str> = cookie_values(headers, THEME_COOKIE).collect();
+        let mut set_cookies = match values.as_slice() {
+            [] => return Vec::new(),
+            [value] => Theme::parse(value)
+                .filter(|t| *t != Theme::System)
+                .map(Theme::set_cookie)
+                .into_iter()
+                .collect(),
+            _ => Vec::new(),
+        };
+        set_cookies.push(format!(
+            "{THEME_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax; Secure"
+        ));
+        set_cookies
     }
 
     /// The `Set-Cookie` value that keeps this theme for a year on the whole
@@ -85,6 +129,16 @@ impl Theme {
         format!(
             "{THEME_COOKIE}={value}; Domain={THEME_COOKIE_DOMAIN}; Path=/; Max-Age={max_age}; SameSite=Lax; Secure"
         )
+    }
+
+    /// The `Set-Cookie` value for the host-only `theme_local` fallback, for an
+    /// app that cannot set the shared cookie; system clears it.
+    pub fn set_local_cookie(self) -> String {
+        let (value, max_age) = match self {
+            Theme::System => ("", 0),
+            theme => (theme.as_str(), THEME_COOKIE_MAX_AGE),
+        };
+        format!("{THEME_LOCAL_COOKIE}={value}; Path=/; Max-Age={max_age}; SameSite=Lax; Secure")
     }
 
     /// The html element's `data-theme`, which overrides the system's choice;
@@ -101,6 +155,20 @@ impl Theme {
             Theme::Dark => "dark",
         }
     }
+}
+
+/// The values of every cookie called `name` in the `Cookie` header values, in
+/// the order the browser sent them.
+fn cookie_values<'a>(
+    headers: impl IntoIterator<Item = &'a str>,
+    name: &'a str,
+) -> impl Iterator<Item = &'a str> {
+    headers
+        .into_iter()
+        .flat_map(|v| v.split(';'))
+        .filter_map(|pair| pair.trim().split_once('='))
+        .filter(move |(n, _)| *n == name)
+        .map(|(_, value)| value)
 }
 
 #[cfg(test)]
@@ -124,6 +192,67 @@ mod tests {
         assert_eq!(Theme::from_cookie_headers([]), Theme::System);
         assert_eq!(Theme::from_cookie_headers(["theme=purple"]), Theme::System);
         assert_eq!(Theme::from_cookie_headers(["themes=dark"]), Theme::System);
+    }
+
+    #[test]
+    fn prefers_the_shared_cookie_over_the_local_one() {
+        assert_eq!(
+            Theme::from_cookie_headers(["theme_local=light; theme=dark"]),
+            Theme::Dark
+        );
+        assert_eq!(
+            Theme::from_cookie_headers(["theme=dark", "theme_local=light"]),
+            Theme::Dark
+        );
+        assert_eq!(
+            Theme::from_cookie_headers(["session=abc; theme_local=light"]),
+            Theme::Light
+        );
+    }
+
+    #[test]
+    fn a_legacy_host_only_cookie_does_not_win() {
+        // Same path, so the browser sends the older (legacy host-only) first.
+        assert_eq!(
+            Theme::from_cookie_headers(["theme=light; theme=dark"]),
+            Theme::Dark
+        );
+        assert_eq!(
+            Theme::from_cookie_headers(["theme=light; theme=purple"]),
+            Theme::Light
+        );
+    }
+
+    #[test]
+    fn migrates_a_legacy_host_only_cookie() {
+        let expire = "theme=; Path=/; Max-Age=0; SameSite=Lax; Secure";
+        assert!(Theme::legacy_cookie_migration(["session=abc; theme_local=dark"]).is_empty());
+        // Alone, its value moves to the shared cookie.
+        assert_eq!(
+            Theme::legacy_cookie_migration(["session=abc; theme=dark"]),
+            [Theme::Dark.set_cookie(), expire.to_string()]
+        );
+        // Beside the shared cookie, which keeps its own value.
+        assert_eq!(
+            Theme::legacy_cookie_migration(["theme=light; theme=dark"]),
+            [expire]
+        );
+        assert_eq!(Theme::legacy_cookie_migration(["theme=purple"]), [expire]);
+        assert!(!expire.contains("Domain"));
+    }
+
+    #[test]
+    fn set_local_cookie_stays_on_the_host() {
+        assert_eq!(
+            Theme::Light.set_local_cookie(),
+            "theme_local=light; Path=/; Max-Age=31536000; SameSite=Lax; Secure"
+        );
+        assert!(
+            Theme::System
+                .set_local_cookie()
+                .starts_with("theme_local=; ")
+        );
+        assert!(Theme::System.set_local_cookie().contains("Max-Age=0;"));
     }
 
     #[test]

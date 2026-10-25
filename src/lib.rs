@@ -21,7 +21,7 @@ pub const CASTLE_WEBP: &[u8] = include_bytes!("../assets/castle.webp");
 pub const CASTLE_WEBP_TYPE: &str = "image/webp";
 
 /// This crate's version, for a cache-busting query on the asset URLs
-/// (`/static/castle.css?v=0.1.0`).
+/// (`/static/castle.css?v=0.1.1`).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// The theme cookie's name.

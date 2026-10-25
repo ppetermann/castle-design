@@ -22,8 +22,13 @@ const APP_TOKENS: &[&str] = &[
 
 /// The stylesheet without its comments.
 fn css_code() -> String {
-    let mut out = String::with_capacity(CSS.len());
-    let mut rest = CSS;
+    strip_comments(CSS)
+}
+
+/// CSS without its comments.
+fn strip_comments(css: &str) -> String {
+    let mut out = String::with_capacity(css.len());
+    let mut rest = css;
     while let Some(start) = rest.find("/*") {
         out.push_str(&rest[..start]);
         let end = rest[start..].find("*/").expect("unterminated comment");
@@ -369,7 +374,26 @@ fn rules(code: &str) -> Vec<(Option<String>, Vec<String>)> {
 
 #[test]
 fn media_overrides_follow_their_base_rule() {
-    let rules = rules(&css_code());
+    assert_overrides_follow_base("castle.css", &css_code());
+}
+
+#[test]
+fn mockup_overrides_follow_their_base_rule() {
+    let mockup = include_str!("../docs/mockup.html");
+    let start = mockup
+        .find(r#"<style id="castle-css">"#)
+        .expect("mockup sheet")
+        + 23;
+    let end = start
+        + mockup[start..]
+            .find("</style>")
+            .expect("unterminated style");
+    assert_overrides_follow_base("the mockup", &strip_comments(&mockup[start..end]));
+}
+
+/// Fails when an at-rule overrides a selector whose base rule comes later.
+fn assert_overrides_follow_base(sheet: &str, code: &str) {
+    let rules = rules(code);
     let mut misplaced = Vec::new();
     for (i, (media, selectors)) in rules.iter().enumerate() {
         let Some(media) = media else { continue };
@@ -384,6 +408,6 @@ fn media_overrides_follow_their_base_rule() {
     }
     assert!(
         misplaced.is_empty(),
-        "overrides that come before the base rule they override: {misplaced:?}"
+        "{sheet}: overrides that come before the base rule they override: {misplaced:?}"
     );
 }

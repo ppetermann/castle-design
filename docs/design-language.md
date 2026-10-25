@@ -194,6 +194,9 @@ a phone still gets 44 px targets.
   column), narrow `< 56rem` (a sidebar becomes a drawer), ultra-wide
   `>= 100rem` (the page grows to `max(--page, 80vw)` and tile grids use a
   20rem minimum: 4 columns at 1920 px, 6 at 2560 px).
+- **Override after base**: a breakpoint's override of a selector comes after
+  that selector's base rule, never before, since at equal specificity the
+  later rule wins (`tests/assets.rs` checks the sheet and the mockup's copy).
 - **Page**: `main` centred at `--page`, padding `--s5 --s4`, plus the bottom
   bar's height on a phone. Home's front page pads the top with
   `clamp(2rem, 8vh, 5rem)`.
@@ -376,11 +379,8 @@ How each should look when another app needs it:
   (`castle_design::CSS`, `castle_design::CASTLE_WEBP`) and carries the theme
   cookie helper (`castle_design::Theme`).
 
-**Each app depends on the crate, pinned to a tag**:
-
-```toml
-castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.0" }
-```
+**Each app depends on the crate, pinned to a tag** (the dependency line is in
+the [README](../README.md#using-it-from-an-app)).
 
 The app serves `CSS` and `CASTLE_WEBP` from its own routes (or inlines the
 CSS into its page), sets `--castle` to the picture's URL, and puts its own

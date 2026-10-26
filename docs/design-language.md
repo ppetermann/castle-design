@@ -84,12 +84,14 @@ URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }
 ### Status
 
 Two values each: the vivid one for dots and fills (3:1 against the page is
-enough for a shape), the `-text` one for words (4.5:1).
+enough for a shape), the `-text` one for words (4.5:1 on `--bg`, `--surface`,
+`--surface-2` and strong glass, and on its own badge wash; `tests/contrast.rs`
+checks every text token on every one of those grounds).
 
 | token | light | dark |
 | --- | --- | --- |
-| `--ok` / `--ok-text` | `#16a34a` / `#15803d` | `#22c55e` / `#4ade80` |
-| `--warn` / `--warn-text` | `#ea580c` / `#b45309` | `#fb923c` / `#fdba74` |
+| `--ok` / `--ok-text` | `#16a34a` / `#137236` | `#22c55e` / `#4ade80` |
+| `--warn` / `--warn-text` | `#ea580c` / `#9e4908` | `#fb923c` / `#fdba74` |
 | `--err` / `--err-text` | `#dc2626` / `#b91c1c` | `#f87171` / `#fca5a5` |
 | `--info` | `#1c549b` | `#86b6ef` |
 
@@ -108,10 +110,18 @@ declared on `:root` and re-derived on every element whose `style` names
 
 | token | light | dark | for |
 | --- | --- | --- | --- |
-| `--hue-ink` | `hsl(h 60% 42%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch |
-| `--hue-text` | `hsl(h 55% 34%)` | `hsl(h 55% 80%)` | words in the hue (AA on both) |
+| `--hue-ink` | `hsl(h 60% 35%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch (3:1) |
+| `--hue-text` | `hsl(h 55% 26%)` | `hsl(h 55% 80%)` | words in the hue (4.5:1) |
 | `--hue-wash` | `color-mix(ink 16 %, --surface)` | same | a slot's fill |
 | `--hue-soft` | `color-mix(ink 10 %, --surface)` | same | a quieter fill (an automation) |
+
+The contrast holds at every hue from 0 to 359 in both themes:
+`--hue-text` reaches 4.5:1 on every surface, on `--hue-wash` and on a
+`.badge.hue`; `--hue-ink` reaches 3:1 on every surface; `--text` and
+`--text-soft` reach 4.5:1 on both washes. `tests/contrast.rs` computes all of
+it from the sheet, so a value that breaks it fails CI. HSL lightness is not
+even across hues (yellow and green are the bright ones), so the light values
+are set by the worst hue.
 
 A tile icon and the login mark keep their own lighter tint (`--mark-bg`,
 `--mark-ink`) from the same `--hue`.
@@ -384,12 +394,13 @@ Each entry: what it is, how it is drawn, which app has it today.
 - **Schedule** (`ul.schedule`): what happens when. Each `li` is a time
   column (`.t`, tabular, a `b` for a second line) and a slot; `li.day` heads
   a day (a bold number, the weekday, a muted word such as "today"), `li.more`
-  closes one ("3 more tomorrow"). Past rows fade to 55 %; the running row, or
+  closes one ("3 more tomorrow"). A past row's slot is quieter (`--hue-soft`,
+  a faded bar, a lighter title), never faded below AA; the running row, or
   with none the next one, sits on `--accent-soft` with its time in accent.
   The calendar's agenda, home's today list, lights' schedule runs.
 - **Slot** (`.slot`): one event or run as a block in its hue: a 3 px
   `--hue-ink` bar on the left, a `--hue-wash` fill, the title in 600 and a
-  muted line under it. `.row` puts it on one line (a month cell, the all-day
+  `--text-soft` line under it. `.row` puts it on one line (a month cell, the all-day
   row, a schedule row); `.auto` marks an automation, something no person
   put there (a dashed bar, the quieter `--hue-soft`, a bolt drawn in
   `currentColor`); `.more` is the "+2 more" link. A link slot lifts on hover.
@@ -405,8 +416,11 @@ Each entry: what it is, how it is drawn, which app has it today.
   `--lanes`; `.tg-col.today` is washed in accent; `.tg-now` sets `--at` and
   draws the now line in `--now` across that column. It goes in a
   `.card.flush`; on a phone, once the columns fall under 5.5rem each, the
-  grid scrolls sideways. The calendar's week and day; lights' runs this week
-  could use it.
+  grid scrolls sideways. Under a coarse pointer a slot is at least `--tap`
+  tall however short its time, so an app placing lanes counts a slot as
+  lasting at least `--tap` ÷ `--hour-h` hours (about 1.2 h at the defaults)
+  and puts a neighbour that starts inside that span in the next lane. The
+  calendar's week and day; lights' runs this week could use it.
 - **Empty state** (`.empty`): dashed strong line, icon, bold first line, what
   to do next. All apps.
 - **Code and logs** (`pre`, `.log`): `--bg-sunken`, mono 13 px, soft wrap;
@@ -423,12 +437,26 @@ Each entry: what it is, how it is drawn, which app has it today.
 For home and lights (and any dense app on a phone):
 
 - Every control is at least 44 × 44 px under a coarse pointer (`--tap`), and
-  a small control (a switch, a caret) sits in a 44 px box. Toggle chips and
-  their second target and a small segmented control (`.segmented.sm`) grow
-  to `--tap` under a coarse pointer; pill checks and
-  the swatch picker are `--tap` always.
+  a small control (a switch, a caret) sits in a 44 px box. The components
+  below say how each meets it.
+- Two older controls fall short of it today: `.btn.sm` (`--tap` minus .5rem,
+  36 px on a touch screen) and `.icon-btn` (`--tap` minus .125rem, 42 px).
+  They predate this table and get the coarse-pointer bump in a later release;
+  until then a page for touch uses `.btn` and `.btn.ghost.round`.
 - Nothing is reachable by hover alone: a second action on a chip or a row is
   a visible target.
+
+  | component | its target under a coarse pointer |
+  | --- | --- |
+  | `.segmented` (links, buttons, radio labels; `.wrap`, `.fill`, `.fill-phone`) | each choice `--tap` high; `.sm` grows from 36 px to `--tap` |
+  | `.chips.toggle` | the chip `--tap` high, its link or button stretched to that height; the `.act` target `--tap` wide; `li.plain`'s link the same |
+  | `.check.pill` | `--tap` high always (`.check`'s min-height) |
+  | `.swatches` | each hue a `--tap` circle always |
+  | `.slot` as a link (in a schedule, a month cell, the all-day row, the time grid, `.more`) | at least `--tap` high, however short the event; see the time grid's lane rule |
+  | `.tg-head` column links | a muted line over a bold one plus padding, over 44 px high; a column is at least 5.5rem wide |
+  | `.sheet-head .close` | at least `--tap` square, whichever button it is |
+  | `.card.dialog` buttons | `.btn`, `--tap` high |
+
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and
   state in the corners; on = filled with the lamp's reported colour (warm
   white when it reports none) and a soft glow of it, ink picked for contrast;

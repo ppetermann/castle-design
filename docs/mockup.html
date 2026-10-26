@@ -59,8 +59,8 @@
   --ring:            0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
 
   /* status: the vivid value for dots and fills, the -text value for words */
-  --ok:        light-dark(#16a34a, #22c55e);  --ok-text:   light-dark(#15803d, #4ade80);
-  --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#b45309, #fdba74);
+  --ok:        light-dark(#16a34a, #22c55e);  --ok-text:   light-dark(#137236, #4ade80);
+  --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#9e4908, #fdba74);
   --err:       light-dark(#dc2626, #f87171);  --err-text:  light-dark(#b91c1c, #fca5a5);
   --info:      light-dark(#1c549b, #86b6ef);
   --now:       var(--err);                    /* the time grid's now line */
@@ -94,11 +94,13 @@
 }
 /* hue tokens: a thing drawn in its own hue (a calendar's source, a tag, a room)
    sets --hue inline (style="--hue: 150") and these follow it; with no --hue
-   they take 220. --hue-ink for lines, dots and bars, --hue-text for words
-   (AA in both themes), --hue-wash for a block's fill, --hue-soft for a quieter one */
+   they take 220. --hue-ink for lines, dots and bars (3:1 on every surface),
+   --hue-text for words (4.5:1 on every surface and on the washes, at every
+   hue, in both themes: tests/contrast.rs), --hue-wash for a block's fill,
+   --hue-soft for a quieter one */
 :root, .frame, [style*="--hue"] {
-  --hue-ink:  light-dark(hsl(var(--hue, 220) 60% 42%), hsl(var(--hue, 220) 70% 68%));
-  --hue-text: light-dark(hsl(var(--hue, 220) 55% 34%), hsl(var(--hue, 220) 55% 80%));
+  --hue-ink:  light-dark(hsl(var(--hue, 220) 60% 35%), hsl(var(--hue, 220) 70% 68%));
+  --hue-text: light-dark(hsl(var(--hue, 220) 55% 26%), hsl(var(--hue, 220) 55% 80%));
   --hue-wash: color-mix(in srgb, var(--hue-ink) 16%, var(--surface));
   --hue-soft: color-mix(in srgb, var(--hue-ink) 10%, var(--surface));
 }
@@ -297,6 +299,7 @@ a.tile:hover .url { color: var(--accent-text); }
 .sheet .sheet-head h2 { flex: 1; min-width: 0; }
 .sheet .sheet-body { flex: 1; overflow: auto; padding: var(--s2) var(--s4) var(--s5); }
 .sheet .sheet-head .close { flex: none; margin-left: auto; }   /* the close button: an .icon-btn or a .btn.ghost.round */
+@media (pointer: coarse) { .sheet .sheet-head .close { min-width: var(--tap); min-height: var(--tap); } }
 .sheet .sheet-body.flat > .card { padding: 0; border: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* a page fetched whole into the sheet */
 /* docked: beside a page that stays live (no scrim, aria-modal="false"), under the bar and above the bottom bar */
 .sheet.docked { top: var(--nav-h); bottom: var(--tabbar-pad, 0px); z-index: 9; }
@@ -511,7 +514,9 @@ ul.schedule { list-style: none; display: flex; flex-direction: column; gap: 3px;
 ul.schedule > li { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); align-items: start; gap: var(--s2); min-height: 1.7rem; border-radius: var(--r-s); font-size: var(--t-s); }
 ul.schedule .t { padding-top: .2rem; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.3; text-align: right; white-space: nowrap; }
 ul.schedule .t b { display: block; color: var(--text); font-weight: 600; }
-ul.schedule > li.past { opacity: .55; }
+/* past: a quieter fill, a faded bar and a lighter title; the words keep their contrast */
+ul.schedule > li.past .slot { border-left-color: color-mix(in srgb, var(--hue-ink) 45%, transparent); background: var(--hue-soft); }
+ul.schedule > li.past .slot b { font-weight: 500; }
 ul.schedule > li.now, ul.schedule:not(:has(> li.now)) > li.next { background: var(--accent-soft); }
 ul.schedule > li.now .t, ul.schedule:not(:has(> li.now)) > li.next .t { color: var(--accent-text); font-weight: 600; }
 ul.schedule > li.day { display: flex; align-items: baseline; gap: var(--s2); margin-top: var(--s3); color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
@@ -522,7 +527,7 @@ ul.schedule > li.more { grid-template-columns: 1fr; padding-left: calc(3.6rem + 
    the time grid. .row is one line; .auto marks an automation (dashed bar, a bolt) */
 .slot { position: relative; display: flex; flex-direction: column; min-width: 0; padding: .15rem .5rem; border-left: 3px solid var(--hue-ink); border-radius: var(--r-s); background: var(--hue-wash); color: var(--text); font-size: var(--t-s); line-height: 1.25; text-decoration: none; }
 .slot b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.slot span, .slot small { overflow: hidden; color: var(--muted); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.slot span, .slot small { overflow: hidden; color: var(--text-soft); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
 .slot.row { flex-direction: row; align-items: center; gap: .3rem; min-height: 1.25rem; padding: 0 .35rem; }
 .slot.auto { padding-right: 1.25rem; border-left-style: dashed; background: var(--hue-soft); }
 .slot.auto::after { content: ""; position: absolute; top: .2rem; right: .3rem; width: .75rem; height: .75rem; background: currentColor; opacity: .7;
@@ -530,12 +535,16 @@ ul.schedule > li.more { grid-template-columns: 1fr; padding-left: calc(3.6rem + 
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E") center / contain no-repeat; }
 .slot.more { border: 0; background: none; color: var(--accent-text); }
 a.slot:hover, a.slot:focus-visible { box-shadow: var(--shadow-1); }
+/* under a thumb a slot is a full target, however short its time */
+@media (pointer: coarse) { a.slot, a.slot.row { min-height: var(--tap); } }
 /* time grid: days (or any columns) side by side against an hours axis, an
    all-day row above, slots placed by the hour, the now line across today.
    The grid sets --cols, --from (its first hour) and --hours; a slot in a
    .tg-col sets --start and --len (hours, decimals for minutes) and, beside
    others at the same time, --lane of --lanes; .tg-now sets --at. Put it in a
-   .card.flush; on a phone it scrolls sideways once the columns run out of room */
+   .card.flush; on a phone it scrolls sideways once the columns run out of room.
+   Under a coarse pointer a slot is at least --tap tall, so an app placing lanes
+   counts a slot as lasting at least --tap / --hour-h hours */
 .timegrid { --cols: 7; --from: 0; --hours: 24; --hour-h: 2.25rem; --gutter: 3.25rem; --col-min: 5.5rem; overflow-x: auto; }
 .tg-head, .tg-allday, .tg-body { display: grid; grid-template-columns: var(--gutter) repeat(var(--cols), minmax(0, 1fr)); min-width: calc(var(--gutter) + var(--cols) * var(--col-min)); }
 .tg-head { border-bottom: 1px solid var(--line); }

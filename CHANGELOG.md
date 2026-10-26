@@ -7,8 +7,8 @@ renamed or removed token, class or public item bumps the minor version.
 
 ### Added
 
-Everything here is opt-in: a page that uses none of the new classes looks as
-it did in 0.1.3.
+Everything under Added is opt-in: a page that uses none of the new classes
+looks as it did in 0.1.3, apart from the two darker status words under Changed.
 
 - Hue tokens: `--hue-ink`, `--hue-text`, `--hue-wash` and `--hue-soft`, on
   `:root` and re-derived on any element that sets `--hue` inline; `.swatch.hue`
@@ -34,6 +34,15 @@ it did in 0.1.3.
 - The design language documents all of it, the calendar as a castle app and
   its phone primary action as an `.icon-btn` "+" in the bar; the mockup gains
   the calendar's week, docked editor and agenda.
+- `tests/contrast.rs`: WCAG AA computed from the sheet, for every text token
+  on every surface and badge wash, and for the hue tokens at every hue in
+  both themes (4.5:1 for words, 3:1 for lines and large text).
+
+### Changed
+
+- Light `--ok-text` `#15803d` → `#137236` and `--warn-text` `#b45309` →
+  `#9e4908`: both were just under 4.5:1 on `--bg` and on their own badge
+  wash. Slightly darker words in ok and warn badges and notes; names unchanged.
 
 ## 0.1.3
 

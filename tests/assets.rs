@@ -5,7 +5,7 @@ use castle_design::{CASTLE_WEBP, CSS, VERSION};
 
 /// Tokens the stylesheet reads but leaves to the app or the markup (the
 /// header of castle.css lists them): app accents, the per-element hue and
-/// lamp fill.
+/// lamp fill, a time-grid slot's place and the now line's hour.
 const APP_TOKENS: &[&str] = &[
     "--on",
     "--kelvin",
@@ -18,6 +18,11 @@ const APP_TOKENS: &[&str] = &[
     "--feel",
     "--hue",
     "--fill",
+    "--start",
+    "--len",
+    "--lane",
+    "--lanes",
+    "--at",
 ];
 
 /// The stylesheet without its comments.

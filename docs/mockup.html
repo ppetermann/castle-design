@@ -11,11 +11,12 @@
    .screen) so phone and desktop frames on one page can both be live, and
    carries the app accents the screens need.
 
-   Sections: 1 tokens · 2 base · 3 backdrop · 4 shell (top bar, tabs, bottom
-   bar, sidebar, home link, theme switch) · 5 surfaces (tile, card, panel)
-   · 6 text pieces · 7 status (dot, badge, note, toast) · 8 controls
-   (button, switch, inputs, segmented, slider) · 9 lists and tables ·
-   10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   Sections: 1 tokens (and the hue tokens) · 2 base · 3 backdrop · 4 shell
+   (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
+   (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
+   note, toast) · 8 controls (button, switch, inputs, segmented, slider,
+   chips, pill checks, swatch picker) · 9 lists and tables (rows, schedule,
+   slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
    13 empty state, pager, code/log · 14 motion.
 
    Every colour is a token, written once for both themes through
@@ -58,10 +59,11 @@
   --ring:            0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent);
 
   /* status: the vivid value for dots and fills, the -text value for words */
-  --ok:        light-dark(#16a34a, #22c55e);  --ok-text:   light-dark(#15803d, #4ade80);
-  --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#b45309, #fdba74);
+  --ok:        light-dark(#16a34a, #22c55e);  --ok-text:   light-dark(#137236, #4ade80);
+  --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#9e4908, #fdba74);
   --err:       light-dark(#dc2626, #f87171);  --err-text:  light-dark(#b91c1c, #fca5a5);
   --info:      light-dark(#1c549b, #86b6ef);
+  --now:       var(--err);                    /* the time grid's now line */
 
   /* the castle behind the page: a wash over the image carries the theme */
   --art-tint:  light-dark(rgb(238 241 246 / .42), rgb(12 15 21 / .55));
@@ -90,6 +92,18 @@
   --card-min: 17rem;        /* a tile in a grid */
   --nav-w: 14.5rem;         /* a sidebar */
 }
+/* hue tokens: a thing drawn in its own hue (a calendar's source, a tag, a room)
+   sets --hue inline (style="--hue: 150") and these follow it; with no --hue
+   they take 220. --hue-ink for lines, dots and bars (3:1 on every surface),
+   --hue-text for words (4.5:1 on every surface and on the washes, at every
+   hue, in both themes: tests/contrast.rs), --hue-wash for a block's fill,
+   --hue-soft for a quieter one */
+:root, .frame, [style*="--hue"] {
+  --hue-ink:  light-dark(hsl(var(--hue, 220) 60% 35%), hsl(var(--hue, 220) 70% 68%));
+  --hue-text: light-dark(hsl(var(--hue, 220) 55% 26%), hsl(var(--hue, 220) 55% 80%));
+  --hue-wash: color-mix(in srgb, var(--hue-ink) 16%, var(--surface));
+  --hue-soft: color-mix(in srgb, var(--hue-ink) 10%, var(--surface));
+}
 @media (pointer: coarse) { :root, .frame { --tap: 2.75rem; } }
 
 /* dense: admin screens for a mouse and keyboard (maia, llm-proxy) */
@@ -108,7 +122,7 @@
 /* ---------- 2. base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 .screen { background: var(--bg); color: var(--text); font: var(--t-m)/1.5 var(--font); -webkit-font-smoothing: antialiased; }
-.screen a { color: var(--accent-text); text-underline-offset: .15em; }
+:where(.screen) a { color: var(--accent-text); text-underline-offset: .15em; }   /* as low as castle.css's a */
 .screen h1, .screen h2, .screen h3 { margin: 0; line-height: 1.25; overflow-wrap: anywhere; }
 .screen h1 { font-size: var(--t-hero); font-weight: 700; letter-spacing: -.02em; }
 .screen h2 { font-size: var(--t-l); font-weight: 650; }
@@ -264,6 +278,8 @@ a.tile:hover .url { color: var(--accent-text); }
 .card > h2 { margin: 0 0 var(--s3); }
 .card.solid { background: var(--surface); backdrop-filter: none; -webkit-backdrop-filter: none; }   /* a table's home on a dense screen */
 .card.danger { border-color: color-mix(in srgb, var(--err) 50%, var(--line)); }
+.card.flush { padding: 0; overflow: hidden; }   /* a grid or a table edge to edge */
+.card.flush > .table-wrap, .card.flush > table { margin: 0; }
 .card .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s3); margin: 0 0 var(--s2); }
 .card .section-head h2 { margin: 0; }
 .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--card-min)), 1fr)); gap: var(--s4); align-items: start; margin: 0 0 var(--s4); }
@@ -276,13 +292,26 @@ a.tile:hover .url { color: var(--accent-text); }
   border: 1px solid var(--line); border-radius: var(--r-l); background: var(--glass-strong); box-shadow: var(--shadow-lg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 /* phone: the panel spans the screen under the top bar */
 @container frame (max-width: 47.99rem) { .popover { position: fixed; left: var(--s2); right: var(--s2); top: calc(var(--nav-h) + var(--s2)); width: auto; } }
-/* .sheet: a side panel for a record's form (llm-proxy); full width on a phone */
+/* .sheet: a side panel for a record's form (llm-proxy, the calendar); full width on a phone */
 .sheet { position: absolute; top: 0; right: 0; bottom: 0; z-index: 30; width: min(27.5rem, 100%); display: flex; flex-direction: column;
   background: var(--glass-strong); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-left: 1px solid var(--line); box-shadow: var(--shadow-lg); }
 .sheet .sheet-head { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
 .sheet .sheet-head h2 { flex: 1; min-width: 0; }
 .sheet .sheet-body { flex: 1; overflow: auto; padding: var(--s2) var(--s4) var(--s5); }
+.sheet .sheet-head .close { flex: none; margin-left: auto; }   /* the close button: an .icon-btn or a .btn.ghost.round */
+@media (pointer: coarse) { .sheet .sheet-head .close { min-width: var(--tap); min-height: var(--tap); } }
+.sheet .sheet-body.flat > .card { padding: 0; border: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }   /* a page fetched whole into the sheet */
+/* docked: beside a page that stays live (no scrim, aria-modal="false"), under the bar and above the bottom bar */
+.sheet.docked { top: var(--nav-h); bottom: var(--tabbar-pad, 0px); z-index: 9; }
 .scrim { position: absolute; inset: 0; z-index: 25; background: var(--scrim); }
+/* .dialog: a confirm on a .card, centred near the top over a scrim; a native
+   <dialog class="card dialog"> takes its ::backdrop for the scrim */
+.dialog { width: min(26rem, calc(100% - 2rem)); padding: var(--s4); border: 1px solid var(--line); color: var(--text); box-shadow: var(--shadow-lg); }
+.dialog:not(dialog) { position: absolute; left: 50%; top: 20vh; z-index: 60; transform: translateX(-50%); }
+dialog.dialog { margin: 20vh auto auto; }
+dialog.dialog::backdrop { background: var(--scrim); }
+.dialog h2 { margin: 0 0 var(--s2); }
+.dialog p { color: var(--text-soft); }
 .section-h { display: flex; align-items: center; gap: var(--s2); margin: var(--s5) 0 var(--s2); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 .hint { color: var(--muted); font-size: var(--t-s); max-width: 70ch; margin: 0 0 var(--s3); }
@@ -302,6 +331,7 @@ a.tile:hover .url { color: var(--accent-text); }
 .badge.info { color: var(--info); background: color-mix(in srgb, var(--info) 15%, transparent); }
 .badge.accent { color: var(--accent-text); background: var(--accent-soft); }
 .badge.outline { background: none; border: 1px solid currentColor; }
+.badge.hue { color: var(--hue-text); background: color-mix(in srgb, var(--hue-ink) 15%, transparent); }
 .badge .dot { width: .4rem; height: .4rem; box-shadow: none; background: currentColor; }
 .note { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s3); margin: 0 0 var(--s4); padding: var(--s3) var(--s4); border-radius: var(--r-m); border: 1px solid var(--line); border-left: 4px solid var(--muted);
   background: var(--glass-strong); color: var(--text-soft); }
@@ -354,11 +384,43 @@ textarea.input { padding: var(--s2) var(--s3); min-height: 5rem; resize: vertica
 .actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; margin-top: var(--s3); }
 .check { display: flex; align-items: center; gap: var(--s2); min-height: var(--tap); font-size: var(--t-m); font-weight: 400; color: var(--text); }
 .check input { width: 1.125rem; height: 1.125rem; margin: 0; accent-color: var(--accent); }
+/* a group of fields under a legend: no box, the legend reads as a field label */
+fieldset.group { min-width: 0; margin: 0 0 var(--s3); padding: 0; border: 0; }
+fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-xs); font-weight: 600; color: var(--muted); }
+/* pill checks: a few booleans as pills (weekdays, sources to include) */
+.pills { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s3); }
+.check.pill { position: relative; display: inline-flex; padding: 0 var(--s4); border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); font-size: var(--t-s); cursor: pointer; }
+.check.pill input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.check.pill:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.check.pill:has(input:focus-visible) { box-shadow: var(--ring); }
+/* swatch picker: one radio per hue, each label sets --hue and holds a .swatch.hue.lg */
+.swatches { display: flex; flex-wrap: wrap; gap: var(--s1); margin: var(--s1) 0 var(--s3); }
+.swatches label { position: relative; display: grid; place-items: center; width: var(--tap); height: var(--tap); border: 2px solid transparent; border-radius: 50%; cursor: pointer; }
+.swatches input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.swatches label:hover { border-color: var(--line-strong); }
+.swatches label:has(input:checked) { border-color: var(--hue-ink); }
+.swatches label:has(input:focus-visible) { box-shadow: var(--ring); }
 /* segmented: a few choices as one control (on/off/toggle; auto/light/dark) */
 .segmented { display: inline-flex; border: 1px solid var(--line-strong); border-radius: var(--r-s); overflow: hidden; }
 .segmented > * { min-height: var(--tap); padding: 0 var(--s4); border: 0; background: var(--surface); color: var(--text-soft); font: inherit; font-weight: 500; cursor: pointer; }
 .segmented > * + * { border-left: 1px solid var(--line-strong); }
 .segmented > [aria-pressed="true"], .segmented > .on { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+/* links (a view switch) and radio labels (a form field, no script) are choices too */
+.segmented > a, .segmented > label { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.segmented > label { position: relative; }
+.segmented > label > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.segmented > [aria-current], .segmented > label:has(input:checked) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.segmented > label:has(input:focus-visible), .segmented > a:focus-visible { z-index: 1; outline: none; box-shadow: inset var(--ring); }
+.segmented.sm > * { min-height: calc(var(--tap) - .5rem); padding: 0 var(--s3); font-size: var(--t-s); }
+@media (pointer: coarse) { .segmented.sm > * { min-height: var(--tap); } }   /* still 44 px under a thumb */
+/* .wrap may break onto a second row, .fill makes equal columns, .fill-phone
+   does so on a phone only. Each cell draws its own hairline inside its left and
+   top edge and sits 1px over its neighbours, so every row keeps its lines and
+   the box's border hides the outer ones */
+.segmented.wrap, .segmented.fill-phone { flex-wrap: wrap; max-width: 100%; }
+.segmented.fill { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.segmented.wrap > *, .segmented.fill > *, .segmented.fill-phone > * { margin: -1px 0 0 -1px; border-left: 0; box-shadow: inset 1px 1px 0 var(--line-strong); }
+@container frame (max-width: 47.99rem) { .segmented.fill-phone { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); } }
 /* slider with its value */
 .slider { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--s1) var(--s3); margin: 0 0 var(--s4); }
 .slider label { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: var(--t-s); font-weight: 600; }
@@ -370,6 +432,30 @@ textarea.input { padding: var(--s2) var(--s3); min-height: 5rem; resize: vertica
 .toolbar .input { width: auto; min-width: min(100%, 14rem); }
 .chips { list-style: none; display: flex; flex-wrap: wrap; gap: var(--s2); padding: 0; margin: 0 0 var(--s3); }
 .chips li { display: inline-flex; align-items: center; gap: var(--s2); padding: 0 var(--s2) 0 var(--s3); min-height: 2rem; background: var(--surface-2); border-radius: var(--r-pill); font-size: var(--t-s); }
+.chips .count { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+/* toggle chips: filters you switch on and off. The chip's control (a link or a
+   button) carries aria-pressed and may hold a .swatch.hue and a .count; an
+   optional second target (.act: "only", "×") sits beside it in the chip.
+   Off is aria-pressed="false" or li.off: dashed, muted, the swatch hollow */
+.chips.toggle > li { gap: 0; padding: 0; border: 1px solid var(--line-strong); background: var(--surface); }
+.chips.toggle > li > a, .chips.toggle > li > button { display: inline-flex; align-items: center; align-self: stretch; gap: var(--s2); padding: 0 var(--s3); border: 0; border-radius: var(--r-pill); background: none; color: var(--text); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
+.chips.toggle > li > a:hover, .chips.toggle > li > button:hover { background: var(--hover); }
+.chips.toggle > li > .act { justify-content: center; min-width: 2rem; margin-left: calc(var(--s2) * -1); padding: 0; color: var(--accent-text); }
+.chips.toggle > li > .act svg.icon { width: 1rem; height: 1rem; }
+.chips.toggle > li:has(> [aria-pressed="false"]), .chips.toggle > li.off { border-style: dashed; background: transparent; }
+.chips.toggle > li:has(> [aria-pressed="false"]) > *, .chips.toggle > li.off > * { color: var(--muted); }
+.chips.toggle > li:has(> [aria-pressed="false"]) .swatch.hue, .chips.toggle > li.off .swatch.hue { border: 2px solid var(--hue-ink); background: transparent; }
+.chips.toggle > li.plain { border: 0; background: none; }   /* a "show all" link at the end */
+.chips.toggle > li.plain > a { color: var(--accent-text); }
+@media (pointer: coarse) {
+  .chips.toggle > li { min-height: var(--tap); }
+  .chips.toggle > li > .act { min-width: var(--tap); }
+}
+/* phone: .scroll keeps the chips on one row you swipe, out to the card's edges */
+@container frame (max-width: 47.99rem) {
+  .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--s4) * -1); padding-inline: var(--s4); }
+  .chips.scroll > li { flex: none; }
+}
 
 /* ---------- 9. lists and tables ---------- */
 /* rows: a name, a state and an action per line (lights' devices, rooms) */
@@ -384,6 +470,9 @@ ul.rows > li + li { border-top: 1px solid var(--line); }
 .row-actions { display: flex; align-items: center; gap: var(--s2); }
 li.offline .row-title, li.offline .row-icon { opacity: .6; }
 .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); vertical-align: -2px; }
+.swatch.hue { flex: none; width: .8rem; height: .8rem; border: 0; border-radius: 50%; background: var(--hue-ink); vertical-align: -1px; }   /* a dot in the element's hue */
+.swatch.hue.sm { width: .6rem; height: .6rem; }
+.swatch.hue.lg { width: 1.5rem; height: 1.5rem; }
 @container frame (max-width: 47.99rem) {
   ul.rows > li { grid-template-columns: auto minmax(min(8rem, 100%), 1fr) auto; }
   .row-state { grid-column: 2 / -1; grid-row: 2; justify-content: flex-start; }
@@ -417,6 +506,65 @@ table.data th .sort { color: var(--accent-text); font-size: .7em; margin-left: .
 dl.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s4); margin: 0 0 var(--s3); }
 dl.facts dt { color: var(--muted); font-size: var(--t-s); }
 dl.facts dd { margin: 0; overflow-wrap: anywhere; }
+/* schedule: what happens when, a time column and a slot per line (a calendar's
+   agenda, home's today list, lights' schedule runs). li.day heads a day,
+   li.more closes one; past rows fade, the running one (or, with none, the
+   next) sits on the accent wash */
+ul.schedule { list-style: none; display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; }
+ul.schedule > li { display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); align-items: start; gap: var(--s2); min-height: 1.7rem; border-radius: var(--r-s); font-size: var(--t-s); }
+ul.schedule .t { padding-top: .2rem; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.3; text-align: right; white-space: nowrap; }
+ul.schedule .t b { display: block; color: var(--text); font-weight: 600; }
+/* past: a quieter fill, a faded bar and a lighter title; the words keep their contrast */
+ul.schedule > li.past .slot { border-left-color: color-mix(in srgb, var(--hue-ink) 45%, transparent); background: var(--hue-soft); }
+ul.schedule > li.past .slot b { font-weight: 500; }
+ul.schedule > li.now, ul.schedule:not(:has(> li.now)) > li.next { background: var(--accent-soft); }
+ul.schedule > li.now .t, ul.schedule:not(:has(> li.now)) > li.next .t { color: var(--accent-text); font-weight: 600; }
+ul.schedule > li.day { display: flex; align-items: baseline; gap: var(--s2); margin-top: var(--s3); color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+ul.schedule > li.day:first-child { margin-top: 0; }
+ul.schedule > li.day b { color: var(--text); font-size: var(--t-m); letter-spacing: 0; text-transform: none; }
+ul.schedule > li.more { grid-template-columns: 1fr; padding-left: calc(3.6rem + var(--s2)); color: var(--accent-text); font-size: var(--t-xs); }
+/* slot: one event or run as a block in its hue, in a schedule, a month cell or
+   the time grid. .row is one line; .auto marks an automation (dashed bar, a bolt) */
+.slot { position: relative; display: flex; flex-direction: column; min-width: 0; padding: .15rem .5rem; border-left: 3px solid var(--hue-ink); border-radius: var(--r-s); background: var(--hue-wash); color: var(--text); font-size: var(--t-s); line-height: 1.25; text-decoration: none; }
+.slot b { overflow: hidden; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.slot span, .slot small { overflow: hidden; color: var(--text-soft); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.slot.row { flex-direction: row; align-items: center; gap: .3rem; min-height: 1.25rem; padding: 0 .35rem; }
+.slot.auto { padding-right: 1.25rem; border-left-style: dashed; background: var(--hue-soft); }
+.slot.auto::after { content: ""; position: absolute; top: .2rem; right: .3rem; width: .75rem; height: .75rem; background: currentColor; opacity: .7;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.slot.more { border: 0; background: none; color: var(--accent-text); }
+a.slot:hover, a.slot:focus-visible { box-shadow: var(--shadow-1); }
+/* under a thumb a slot is a full target, however short its time */
+@media (pointer: coarse) { a.slot, a.slot.row { min-height: var(--tap); } }
+/* time grid: days (or any columns) side by side against an hours axis, an
+   all-day row above, slots placed by the hour, the now line across today.
+   The grid sets --cols, --from (its first hour) and --hours; a slot in a
+   .tg-col sets --start and --len (hours, decimals for minutes) and, beside
+   others at the same time, --lane of --lanes; .tg-now sets --at. Put it in a
+   .card.flush; on a phone it scrolls sideways once the columns run out of room.
+   Under a coarse pointer a slot is at least --tap tall, so an app placing lanes
+   counts a slot as lasting at least --tap / --hour-h hours */
+.timegrid { --cols: 7; --from: 0; --hours: 24; --hour-h: 2.25rem; --gutter: 3.25rem; --col-min: 5.5rem; overflow-x: auto; }
+.tg-head, .tg-allday, .tg-body { display: grid; grid-template-columns: var(--gutter) repeat(var(--cols), minmax(0, 1fr)); min-width: calc(var(--gutter) + var(--cols) * var(--col-min)); }
+.tg-head { border-bottom: 1px solid var(--line); }
+.tg-head > * { min-width: 0; padding: var(--s2) var(--s1); color: var(--muted); font-size: var(--t-xs); font-weight: 600; letter-spacing: .04em; text-align: center; text-decoration: none; text-transform: uppercase; }
+.tg-head b { display: block; color: var(--text); font-size: var(--t-l); font-weight: 650; letter-spacing: 0; line-height: 1.2; text-transform: none; }
+.tg-head .today, .tg-head .today b { color: var(--accent-text); }
+.tg-allday { min-height: 2.25rem; border-bottom: 1px solid var(--line); }
+.tg-allday > * { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: .3rem .2rem; border-left: 1px solid var(--line); }
+.tg-allday > :first-child { align-items: flex-end; justify-content: center; padding-right: var(--s2); border-left: 0; color: var(--muted); font-size: var(--t-xs); line-height: 1.15; text-align: right; }
+.tg-body { position: relative; }
+.tg-hours { display: grid; grid-auto-rows: var(--hour-h); padding-right: var(--s2); color: var(--muted); font-size: var(--t-xs); font-variant-numeric: tabular-nums; text-align: right; }
+.tg-hours > * { transform: translateY(-.55em); }
+.tg-hours > :first-child { transform: none; }
+.tg-col { position: relative; min-width: 0; height: calc(var(--hour-h) * var(--hours)); border-left: 1px solid var(--line); background-image: repeating-linear-gradient(to bottom, var(--line) 0 1px, transparent 1px var(--hour-h)); }
+.tg-col.today { background-color: color-mix(in srgb, var(--accent) 5%, transparent); }
+.tg-col > .slot { position: absolute; z-index: 1; top: calc((var(--start) - var(--from)) * var(--hour-h)); left: calc(2px + (100% - 5px) * var(--lane, 0) / var(--lanes, 1)); width: calc((100% - 5px) / var(--lanes, 1) - 2px);
+  height: max(1.25rem, calc(var(--len) * var(--hour-h) - 2px)); padding: .15rem .4rem; overflow: hidden; font-size: var(--t-xs); box-shadow: var(--shadow-1); }
+.tg-col > .slot.auto { padding-right: 1.25rem; }
+.tg-now { position: absolute; left: 0; right: 0; z-index: 2; top: calc((var(--at) - var(--from)) * var(--hour-h)); height: 2px; background: var(--now); pointer-events: none; }
+.tg-now::before { content: ""; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--now); }
 
 /* ---------- 10. stats ---------- */
 .stats { display: grid; gap: var(--s3); grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); margin: 0 0 var(--s4); }
@@ -509,6 +657,9 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
 .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: .5rem; margin: 0 0 1rem; }
 .sw div { height: 3.25rem; border-radius: 8px; border: 1px solid var(--line-strong); display: flex; align-items: end; padding: .3rem .5rem; font: 11px/1.2 var(--mono); }
 .row-demo { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; margin: 0 0 1rem; }
+/* the calendar screens: the bar's New event is a button on a desk and a "+" on a phone (the app's own sheet does this) */
+@container frame (max-width: 47.99rem) { .screen .desk-only { display: none; } }
+@container frame (min-width: 48rem) { .screen .phone-only { display: none; } }
 </style>
 </head>
 <body>
@@ -552,6 +703,11 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
   <symbol id="i-panel" viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 10h16M9 10v9"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-key" viewBox="0 0 24 24"><path d="M8 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM11.5 12.5L20 4M17 7l2 2M15 9l2 2"/></symbol>
+  <symbol id="i-day" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-week" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v11M15 10v11"/></symbol>
+  <symbol id="i-month" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v11M15 10v11"/></symbol>
+  <symbol id="i-agenda" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+  <symbol id="i-only" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></symbol>
 </svg>
 
 <header class="bar">
@@ -607,6 +763,60 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
     <div class="card"><div class="fields"><label class="field">Name<input class="input" value="Desk lamp"></label><label class="field">Room<select class="input"><option>Living room</option></select></label><label class="field grow">or a new room<input class="input" placeholder="e.g. Living room"><span class="hint">What maia understands when someone says "the kitchen".</span></label><button class="btn primary">Save</button></div>
       <div class="slider"><label>Brightness <output>40 %</output></label><input type="range" value="40"></div>
       <div class="slider kelvin"><label>Colour temperature <output>2700 K</output></label><input type="range" value="30"></div></div>
+    <h2 class="section-h">Hue</h2>
+    <div class="row-demo"><span class="badge hue" style="--hue:220"><span class="swatch hue"></span>personal</span><span class="badge hue" style="--hue:280"><span class="swatch hue"></span>work</span><span class="badge hue" style="--hue:330"><span class="swatch hue"></span>family</span><span class="badge hue" style="--hue:150"><span class="swatch hue"></span>sport</span><span class="badge hue" style="--hue:38"><span class="swatch hue"></span>home automation</span>
+      <span class="swatch hue sm" style="--hue:150"></span><span class="swatch hue" style="--hue:150"></span><span class="swatch hue lg" style="--hue:150"></span><span class="swatch" style="background:#ffd6a0"></span></div>
+    <div class="sw">
+      <div style="--hue:280;background:var(--hue-ink);color:var(--surface)">--hue-ink 280</div><div style="--hue:280;background:var(--hue-wash);color:var(--hue-text)">--hue-wash · -text</div><div style="--hue:280;background:var(--hue-soft)">--hue-soft</div>
+      <div style="--hue:150;background:var(--hue-ink);color:var(--surface)">--hue-ink 150</div><div style="--hue:150;background:var(--hue-wash);color:var(--hue-text)">--hue-wash · -text</div><div style="--hue:150;background:var(--hue-soft)">--hue-soft</div>
+    </div>
+    <h2 class="section-h">Chips, pill checks, swatch picker</h2>
+    <div class="card">
+    <ul class="chips toggle scroll" aria-label="Sources shown">
+      <li style="--hue:220"><a href="#" aria-pressed="true"><span class="swatch hue"></span>personal <span class="count">4</span></a><a class="act" href="#" aria-label="Only personal" title="Only personal"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:280"><a href="#" aria-pressed="true"><span class="swatch hue"></span>work <span class="count">13</span></a><a class="act" href="#" aria-label="Only work" title="Only work"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:330"><a href="#" aria-pressed="true"><span class="swatch hue"></span>family <span class="count">3</span></a><a class="act" href="#" aria-label="Only family" title="Only family"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:95"><a href="#" aria-pressed="true"><span class="swatch hue"></span>birthdays <span class="count">1</span></a><a class="act" href="#" aria-label="Only birthdays" title="Only birthdays"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:150"><a href="#" aria-pressed="false"><span class="swatch hue"></span>sport <span class="count">3</span></a></li>
+      <li style="--hue:38"><a href="#" aria-pressed="true"><span class="swatch hue"></span>home automation <span class="count">14</span></a><a class="act" href="#" aria-label="Only home automation" title="Only home automation"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li class="plain"><a href="#">show all</a></li>
+    </ul>
+      <ul class="chips"><li>Lounge</li><li>Den</li><li>Living room</li></ul>
+      <fieldset class="group"><legend>Days</legend><div class="pills"><label class="check pill"><input type="checkbox" checked>Mon</label><label class="check pill"><input type="checkbox">Tue</label><label class="check pill"><input type="checkbox" checked>Wed</label><label class="check pill"><input type="checkbox">Thu</label><label class="check pill"><input type="checkbox" checked>Fri</label><label class="check pill"><input type="checkbox">Sat</label><label class="check pill"><input type="checkbox">Sun</label></div></fieldset>
+      <fieldset class="group"><legend>Colour</legend><div class="swatches" role="radiogroup" aria-label="Colour"><label style="--hue:0"><input type="radio" name="hue" aria-label="hue 0"><span class="swatch hue lg"></span></label><label style="--hue:25"><input type="radio" name="hue" aria-label="hue 25"><span class="swatch hue lg"></span></label><label style="--hue:38"><input type="radio" name="hue" aria-label="hue 38"><span class="swatch hue lg"></span></label><label style="--hue:60"><input type="radio" name="hue" aria-label="hue 60"><span class="swatch hue lg"></span></label><label style="--hue:95"><input type="radio" name="hue" aria-label="hue 95"><span class="swatch hue lg"></span></label><label style="--hue:150"><input type="radio" name="hue" aria-label="hue 150"><span class="swatch hue lg"></span></label><label style="--hue:180"><input type="radio" name="hue" aria-label="hue 180"><span class="swatch hue lg"></span></label><label style="--hue:200"><input type="radio" name="hue" checked aria-label="hue 200"><span class="swatch hue lg"></span></label><label style="--hue:220"><input type="radio" name="hue" aria-label="hue 220"><span class="swatch hue lg"></span></label><label style="--hue:250"><input type="radio" name="hue" aria-label="hue 250"><span class="swatch hue lg"></span></label><label style="--hue:280"><input type="radio" name="hue" aria-label="hue 280"><span class="swatch hue lg"></span></label><label style="--hue:330"><input type="radio" name="hue" aria-label="hue 330"><span class="swatch hue lg"></span></label></div></fieldset>
+    </div>
+    <h2 class="section-h">Segmented: links, radio labels, a wrap that keeps its lines</h2>
+    <div class="card">
+      <div class="row-demo"><div class="segmented sm"><a href="#" aria-label="Previous week">‹</a><a href="#">Today</a><a href="#" aria-label="Next week">›</a></div><div class="segmented"><a href="#">Day</a><a href="#" aria-current="page">Week</a><a href="#">Month</a><a href="#">Agenda</a></div></div>
+      <fieldset class="group"><legend>Repeats (.wrap)</legend><div class="segmented wrap" role="radiogroup" aria-label="Repeats"><label><input type="radio" name="rep-f"><span>Never</span></label><label><input type="radio" name="rep-f"><span>Daily</span></label><label><input type="radio" name="rep-f" checked><span>Weekly</span></label><label><input type="radio" name="rep-f"><span>Monthly</span></label><label><input type="radio" name="rep-f"><span>Yearly</span></label></div></fieldset>
+      <fieldset class="group"><legend>Change (.fill)</legend><div class="segmented fill" role="radiogroup" aria-label="Change"><label><input type="radio" name="sc-f" checked><span>This event</span></label><label><input type="radio" name="sc-f"><span>This and following</span></label><label><input type="radio" name="sc-f"><span>All events</span></label></div></fieldset>
+    </div>
+    <h2 class="section-h">Schedule, slots, dialog</h2>
+    <div class="grid-2">
+      <div class="card"><h2>Next days</h2>
+      <ul class="schedule">
+        <li class="day"><b>26</b> Monday <span>today</span></li>
+        <li class="past" style="--hue:38"><span class="t">07:00</span><a class="slot row auto" href="#"><b>Wake-up lights</b><small>– 07:15</small></a></li>
+        <li class="past" style="--hue:280"><span class="t">09:30</span><a class="slot row" href="#"><b>Standup</b><small>– 09:45 · daily</small></a></li>
+        <li class="now" style="--hue:220"><span class="t">11:00</span><a class="slot row" href="#"><b>Dentist</b><small>– 12:00 · now</small></a></li>
+        <li style="--hue:150"><span class="t">18:30</span><a class="slot row" href="#"><b>Swim</b><small>– 19:30 · weekly</small></a></li>
+        <li class="day"><b>27</b> Tuesday <span>tomorrow</span></li>
+        <li style="--hue:95"><span class="t">all day</span><a class="slot row" href="#"><b>A birthday</b><small>birthdays</small></a></li>
+        <li style="--hue:220"><span class="t">12:30<b>13:30</b></span><a class="slot" href="#"><b>Lunch with a friend</b><span>personal · the café on the square</span></a></li>
+        <li class="more"><span>3 more tomorrow</span></li>
+      </ul></div>
+      <div><div class="card dialog" style="position:static;transform:none;width:100%;margin:0 0 var(--s4)"><h2>A repeating event</h2><p>Move which occurrences?</p><div class="actions"><button class="btn primary">This event</button><button class="btn">This and following</button><button class="btn">All events</button><button class="btn ghost">Cancel</button></div></div>
+        <div class="card"><div class="row-demo" style="margin:0"><a class="slot row" style="--hue:280" href="#"><span>09:30</span><b>Standup</b></a><a class="slot row auto" style="--hue:38" href="#"><span>07:00</span><b>Wake-up lights</b></a><a class="slot row more" href="#">+2 more</a></div></div></div>
+    </div>
+    <h2 class="section-h">Time grid</h2>
+    <div class="card flush"><div class="timegrid" style="--cols:3;--from:8;--hours:6">
+      <div class="tg-head"><span></span><a href="#">lamps <b>Hall</b></a><a class="today" href="#">lamps <b>Kitchen</b></a><a href="#">heating <b>Bathroom</b></a></div>
+      <div class="tg-allday"><span>all day</span><div></div><div><a class="slot row auto" style="--hue:38" href="#"><b>Away mode</b></a></div><div></div></div>
+      <div class="tg-body"><div class="tg-hours"><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span></div>
+        <div class="tg-col"><a class="slot auto" style="--hue:38;--start:8;--len:.5" href="#"><b>Warm white</b></a><a class="slot auto" style="--hue:38;--start:12;--len:1" href="#"><b>Off</b><span>12:00 – 13:00</span></a></div>
+        <div class="tg-col today"><a class="slot auto" style="--hue:38;--start:9;--len:2;--lane:0;--lanes:2" href="#"><b>Dim 40 %</b><span>09:00 – 11:00</span></a><a class="slot auto" style="--hue:200;--start:9.5;--len:1;--lane:1;--lanes:2" href="#"><b>Scene</b><span>09:30 – 10:30</span></a><span class="tg-now" style="--at:11.4"></span></div>
+        <div class="tg-col"><a class="slot auto" style="--hue:0;--start:10;--len:1.5" href="#"><b>21 °C</b><span>10:00 – 11:30</span></a></div>
+      </div></div></div>
     <h2 class="section-h">Table (dense look at comfortable scale)</h2>
     <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th>model</th><th>type</th><th>access</th><th class="num">requests 24 h</th><th>enabled</th></tr></thead><tbody>
       <tr><td class="lead">llama3-8b<span class="sub">vLLM · gpu-box</span></td><td>chat</td><td><span class="badge accent">key required</span></td><td class="num">1 204</td><td><button class="switch" aria-pressed="true"></button></td></tr>
@@ -786,6 +996,99 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
   </form></div>
 </div>
 </template>
+<!-- =================== CALENDAR =================== -->
+<template id="t-cal-bar">
+  <header class="topbar"><a class="home-link" href="#"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a><a class="brand" href="#">calendar</a>
+    <nav class="tabs" aria-label="Views">
+      <a href="#" data-nav="day"><svg class="icon"><use href="#i-day"/></svg><span>Day</span></a>
+      <a href="#" data-nav="week"><svg class="icon"><use href="#i-week"/></svg><span>Week</span></a>
+      <a href="#" data-nav="month"><svg class="icon"><use href="#i-month"/></svg><span>Month</span></a>
+      <a href="#" data-nav="agenda"><svg class="icon"><use href="#i-agenda"/></svg><span>Agenda</span></a>
+    </nav><span class="spacer"></span>
+    <div class="side"><a class="btn primary sm desk-only" href="#"><svg class="icon"><use href="#i-plus"/></svg>New event</a><a class="icon-btn phone-only" href="#" aria-label="New event" title="New event"><svg class="icon"><use href="#i-plus"/></svg></a><a class="icon-btn" href="#" aria-label="Sources" title="Sources"><svg class="icon"><use href="#i-gear"/></svg></a>
+      <div class="theme-switch" role="group" aria-label="Theme"><button aria-pressed="true" title="System"><svg class="icon"><use href="#i-monitor"/></svg></button><button title="Light"><svg class="icon"><use href="#i-sun"/></svg></button><button title="Dark"><svg class="icon"><use href="#i-moon"/></svg></button></div></div></header>
+</template>
+<template id="t-cal-week">
+    <div class="toolbar"><div class="segmented sm"><a href="#" aria-label="Previous week">‹</a><a href="#">Today</a><a href="#" aria-label="Next week">›</a></div><span><b>26 Oct – 1 Nov 2026</b> <span class="meta">week 44</span></span><span style="flex:1"></span></div>
+    <ul class="chips toggle scroll" aria-label="Sources shown">
+      <li style="--hue:220"><a href="#" aria-pressed="true"><span class="swatch hue"></span>personal <span class="count">4</span></a><a class="act" href="#" aria-label="Only personal" title="Only personal"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:280"><a href="#" aria-pressed="true"><span class="swatch hue"></span>work <span class="count">13</span></a><a class="act" href="#" aria-label="Only work" title="Only work"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:330"><a href="#" aria-pressed="true"><span class="swatch hue"></span>family <span class="count">3</span></a><a class="act" href="#" aria-label="Only family" title="Only family"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:95"><a href="#" aria-pressed="true"><span class="swatch hue"></span>birthdays <span class="count">1</span></a><a class="act" href="#" aria-label="Only birthdays" title="Only birthdays"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:150"><a href="#" aria-pressed="false"><span class="swatch hue"></span>sport <span class="count">3</span></a></li>
+      <li style="--hue:38"><a href="#" aria-pressed="true"><span class="swatch hue"></span>home automation <span class="count">14</span></a><a class="act" href="#" aria-label="Only home automation" title="Only home automation"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li class="plain"><a href="#">show all</a></li>
+    </ul>
+    <div class="card flush"><div class="timegrid" style="--from:7;--hours:13">
+      <div class="tg-head"><span></span><a class="today" href="#">Mon <b>26</b></a><a href="#">Tue <b>27</b></a><a href="#">Wed <b>28</b></a><a href="#">Thu <b>29</b></a><a href="#">Fri <b>30</b></a><a href="#">Sat <b>31</b></a><a href="#">Sun <b>1</b></a></div>
+      <div class="tg-allday"><span>all day</span><div></div><div></div><div></div><div><a class="slot row" style="--hue:95" href="#"><b>A birthday</b></a></div><div></div><div><a class="slot row" style="--hue:330" href="#"><b>Autumn break</b></a></div><div><a class="slot row" style="--hue:330" href="#"><b>Autumn break</b></a></div></div>
+      <div class="tg-body"><div class="tg-hours"><span>07:00</span><span>08:00</span><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span></div>
+        <div class="tg-col today"><a class="slot auto" style="--hue:38;--start:7;--len:0.25" href="#"><b>Wake-up lights</b></a><a class="slot" style="--hue:280;--start:9.5;--len:0.25" href="#"><b>Standup</b></a><a class="slot" style="--hue:220;--start:11;--len:1" href="#"><b>Dentist</b><span>11:00 – 12:00</span></a><a class="slot" style="--hue:150;--start:18.5;--len:1" href="#"><b>Swim</b><span>18:30 – 19:30</span></a><span class="tg-now" style="--at:11.4"></span></div>
+        <div class="tg-col"><a class="slot auto" style="--hue:38;--start:7;--len:0.25" href="#"><b>Wake-up lights</b></a><a class="slot" style="--hue:280;--start:9.5;--len:0.25" href="#"><b>Standup</b></a><a class="slot" style="--hue:220;--start:12.5;--len:1" href="#"><b>Lunch with a friend</b><span>12:30 – 13:30</span></a><a class="slot" style="--hue:280;--start:14;--len:1.5" href="#"><b>Sprint review</b><span>14:00 – 15:30</span></a></div>
+        <div class="tg-col"><a class="slot auto" style="--hue:38;--start:7;--len:0.25" href="#"><b>Wake-up lights</b></a><a class="slot" style="--hue:280;--start:9.5;--len:0.25" href="#"><b>Standup</b></a><a class="slot" style="--hue:280;--start:10;--len:1;--lane:0;--lanes:2" href="#"><b>Design sync</b><span>10:00 – 11:00</span></a><a class="slot" style="--hue:280;--start:10.5;--len:1.5;--lane:1;--lanes:2" href="#"><b>Architecture review</b><span>10:30 – 12:00</span></a></div>
+        <div class="tg-col"><a class="slot auto" style="--hue:38;--start:7;--len:0.25" href="#"><b>Wake-up lights</b></a><a class="slot" style="--hue:150;--start:7.5;--len:1" href="#"><b>Yoga</b><span>07:30 – 08:30</span></a><a class="slot" style="--hue:280;--start:9.5;--len:0.25" href="#"><b>Standup</b></a></div>
+        <div class="tg-col"><a class="slot" style="--hue:250;--start:8.2;--len:0.9" href="#"><b>Train</b><span>08:12 – 09:05</span></a><a class="slot" style="--hue:280;--start:9.5;--len:7.5;--lane:0;--lanes:2" href="#"><b>Workshop</b><span>09:30 – 17:00</span></a><a class="slot" style="--hue:280;--start:9.5;--len:0.25;--lane:1;--lanes:2" href="#"><b>Standup</b></a></div>
+        <div class="tg-col"><a class="slot" style="--hue:330;--start:10;--len:1.5" href="#"><b>Market</b><span>10:00 – 11:30</span></a></div>
+        <div class="tg-col"><a class="slot" style="--hue:150;--start:9;--len:3" href="#"><b>Bike ride</b><span>09:00 – 12:00</span></a></div>
+      </div></div></div>
+</template>
+
+<template id="s-cal-week" data-title="calendar · Week" data-app="calendar" data-density="" data-nav="week">
+<div class="screen app-cal"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page"><!--calweek--></main>
+</div>
+</template>
+
+<template id="s-cal-edit" data-title="calendar · Week, editor docked" data-app="calendar" data-density="" data-nav="week">
+<div class="screen app-cal"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page"><!--calweek--></main>
+  <aside class="sheet docked" role="dialog" aria-modal="false" aria-labelledby="cal-sheet-t"><div class="sheet-head"><h2 id="cal-sheet-t">Edit event</h2><button class="icon-btn close" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="sheet-body flat"><div class="card">
+      <form>
+        <label class="field" style="margin:var(--s3) 0">Title<input class="input" value="Standup"></label>
+        <div class="fields"><label class="field">Source<select class="input"><option>work</option><option>personal</option></select></label><label class="check" style="flex:0 0 auto"><input type="checkbox">All day</label></div>
+        <div class="fields"><label class="field">Starts<input class="input" type="date" value="2026-10-26"></label><label class="field">at<input class="input" type="time" value="09:30"></label></div>
+        <div class="fields"><label class="field">Ends<input class="input" type="date" value="2026-10-26"></label><label class="field">at<input class="input" type="time" value="09:45"></label></div>
+        <fieldset class="group"><legend>Repeats</legend><div class="segmented wrap" role="radiogroup" aria-label="Repeats"><label><input type="radio" name="rep"><span>Never</span></label><label><input type="radio" name="rep"><span>Daily</span></label><label><input type="radio" name="rep" checked><span>Weekly</span></label><label><input type="radio" name="rep"><span>Monthly</span></label><label><input type="radio" name="rep"><span>Yearly</span></label></div></fieldset>
+        <fieldset class="group"><legend>On</legend><div class="pills"><label class="check pill"><input type="checkbox" checked>Mon</label><label class="check pill"><input type="checkbox">Tue</label><label class="check pill"><input type="checkbox" checked>Wed</label><label class="check pill"><input type="checkbox">Thu</label><label class="check pill"><input type="checkbox" checked>Fri</label><label class="check pill"><input type="checkbox">Sat</label><label class="check pill"><input type="checkbox">Sun</label></div></fieldset>
+        <fieldset class="group"><legend>Change</legend><div class="segmented fill" role="radiogroup" aria-label="Change"><label><input type="radio" name="sc" checked><span>This event</span></label><label><input type="radio" name="sc"><span>This and following</span></label><label><input type="radio" name="sc"><span>All events</span></label></div></fieldset>
+        <div class="actions"><button class="btn primary" type="button">Save</button><button class="btn ghost" type="button">Cancel</button><span style="flex:1"></span><button class="btn link" type="button" style="color:var(--err-text)">Remove…</button></div>
+      </form>
+    </div></div></aside>
+</div>
+</template>
+
+<template id="s-cal-agenda" data-title="calendar · Agenda" data-app="calendar" data-density="" data-nav="agenda">
+<div class="screen app-cal"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page">
+    <div class="toolbar"><input class="input" placeholder="Search events…"><span class="meta">next 30 days</span></div>
+    <ul class="chips toggle scroll" aria-label="Sources shown">
+      <li style="--hue:220"><a href="#" aria-pressed="true"><span class="swatch hue"></span>personal <span class="count">4</span></a><a class="act" href="#" aria-label="Only personal" title="Only personal"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:280"><a href="#" aria-pressed="true"><span class="swatch hue"></span>work <span class="count">13</span></a><a class="act" href="#" aria-label="Only work" title="Only work"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:330"><a href="#" aria-pressed="true"><span class="swatch hue"></span>family <span class="count">3</span></a><a class="act" href="#" aria-label="Only family" title="Only family"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:95"><a href="#" aria-pressed="true"><span class="swatch hue"></span>birthdays <span class="count">1</span></a><a class="act" href="#" aria-label="Only birthdays" title="Only birthdays"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li style="--hue:150"><a href="#" aria-pressed="false"><span class="swatch hue"></span>sport <span class="count">3</span></a></li>
+      <li style="--hue:38"><a href="#" aria-pressed="true"><span class="swatch hue"></span>home automation <span class="count">14</span></a><a class="act" href="#" aria-label="Only home automation" title="Only home automation"><svg class="icon"><use href="#i-only"/></svg></a></li>
+      <li class="plain"><a href="#">show all</a></li>
+    </ul>
+    <div class="card">
+      <ul class="schedule">
+        <li class="day"><b>26</b> Monday <span>today</span></li>
+        <li class="past" style="--hue:38"><span class="t">07:00</span><a class="slot row auto" href="#"><b>Wake-up lights</b><small>– 07:15</small></a></li>
+        <li class="past" style="--hue:280"><span class="t">09:30</span><a class="slot row" href="#"><b>Standup</b><small>– 09:45 · daily</small></a></li>
+        <li class="now" style="--hue:220"><span class="t">11:00</span><a class="slot row" href="#"><b>Dentist</b><small>– 12:00 · now</small></a></li>
+        <li style="--hue:150"><span class="t">18:30</span><a class="slot row" href="#"><b>Swim</b><small>– 19:30 · weekly</small></a></li>
+        <li class="day"><b>27</b> Tuesday <span>tomorrow</span></li>
+        <li style="--hue:95"><span class="t">all day</span><a class="slot row" href="#"><b>A birthday</b><small>birthdays</small></a></li>
+        <li style="--hue:220"><span class="t">12:30<b>13:30</b></span><a class="slot" href="#"><b>Lunch with a friend</b><span>personal · the café on the square</span></a></li>
+        <li class="more"><span>3 more tomorrow</span></li>
+      </ul>
+    </div>
+    <div class="empty" style="margin-top:var(--s4)"><svg class="icon"><use href="#i-agenda"/></svg><p><b>Nothing from sport in the next 30 days.</b><br>Its events show again when you switch it on above.</p></div>
+  </main>
+</div>
+</template>
+
 <!-- =================== MAIA =================== -->
 <template id="t-maia-shell">
   <header class="appbar"><button class="icon-btn" style="border:0;background:none" aria-label="Menu"><svg class="icon"><use href="#i-menu"/></svg></button><span class="avatar sm feel-pos-1">M</span><span class="appbar-title" data-title></span><a class="home-link" href="#" aria-label="Home"><svg class="icon"><use href="#i-home"/></svg></a><button class="icon-btn" style="border:0;background:none" aria-label="Refresh"><svg class="icon"><use href="#i-refresh"/></svg></button></header>
@@ -979,6 +1282,7 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
     const bar = t.dataset.app === "lights" ? $("#t-lights-bar") : t.dataset.app === "llm" ? $("#t-llm-bar") : null;
     if (bar) html = html.replace("<!--bar-->", bar.innerHTML);
     if (t.dataset.app === "maia") html = html.replace("<!--shell-->", $("#t-maia-shell").innerHTML);
+    if (t.dataset.app === "calendar") html = html.replace("<!--bar-->", $("#t-cal-bar").innerHTML).replace("<!--calweek-->", $("#t-cal-week").innerHTML);
     return html;
   }
   function frame(kind, theme) {

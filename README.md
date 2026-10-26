@@ -1,8 +1,8 @@
 # castle-design
 
 The design system for my personal home apps: one look for every web app
-behind the castle gate (the home dashboard, lights, maia's admin console and
-llm-proxy's admin UI). It can change any second; apps pin a tag.
+behind the castle gate (the home dashboard, lights, maia's admin console,
+llm-proxy's admin UI and the calendar). It can change any second; apps pin a tag.
 
 What is here:
 
@@ -20,7 +20,7 @@ Add the crate as a git dependency, pinned to a tag:
 
 ```toml
 [dependencies]
-castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.3" }
+castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.4" }
 ```
 
 The repository is public, so the fetch needs no token in CI or a Docker build.

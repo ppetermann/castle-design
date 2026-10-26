@@ -3,6 +3,47 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.4
+
+### Added
+
+Everything under Added is opt-in: a page that uses none of the new classes
+looks as it did in 0.1.3, apart from the two darker status words under Changed.
+
+- Hue tokens: `--hue-ink`, `--hue-text`, `--hue-wash` and `--hue-soft`, on
+  `:root` and re-derived on any element that sets `--hue` inline; `.swatch.hue`
+  (a dot in the hue, `.sm`/`.lg`) and `.badge.hue`.
+- Toggle chips (`.chips.toggle`): a link or button with `aria-pressed`, a
+  `.count`, an optional always-visible second target (`.act`), the off state
+  dashed with a hollow swatch, `li.plain` for "show all"; 44 px under a coarse
+  pointer. `.chips.scroll` keeps chips on one swipeable row on a phone.
+- Segmented: links (`aria-current`) and radio labels as choices, `.sm`, and
+  `.wrap`, `.fill` and `.fill-phone`, which wrap or split into equal columns
+  without losing a hairline.
+- Pill checks (`.pills`, `.check.pill`), a swatch picker (`.swatches`) and
+  `fieldset.group` (a legend as a field label, no box).
+- The schedule list (`ul.schedule` with `li.day`, `.past`, `.now`, `.next`,
+  `li.more`) and the slot (`.slot`, `.row`, `.auto` with a bolt, `.more`).
+- The time grid (`.timegrid` with `.tg-head`, `.tg-allday`, `.tg-body`,
+  `.tg-hours`, `.tg-col`, `.tg-now`): columns against an hours axis, slots
+  placed by `--start`/`--len` (and `--lane`/`--lanes`), the now line at `--at`
+  in the new `--now` token.
+- `.card.flush`; `.card.dialog` for a confirm (native `<dialog>` or scripted);
+  `.sheet-head .close`, `.sheet-body.flat` for a page fetched into a sheet,
+  and `.sheet.docked`, a non-modal sheet under the bar beside a live page.
+- The design language documents all of it, the calendar as a castle app and
+  its phone primary action as an `.icon-btn` "+" in the bar; the mockup gains
+  the calendar's week, docked editor and agenda.
+- `tests/contrast.rs`: WCAG AA computed from the sheet, for every text token
+  on every surface and badge wash, and for the hue tokens at every hue in
+  both themes (4.5:1 for words, 3:1 for lines and large text).
+
+### Changed
+
+- Light `--ok-text` `#15803d` → `#137236` and `--warn-text` `#b45309` →
+  `#9e4908`: both were just under 4.5:1 on `--bg` and on their own badge
+  wash. Slightly darker words in ok and warn badges and notes; names unchanged.
+
 ## 0.1.3
 
 ### Added

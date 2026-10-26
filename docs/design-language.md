@@ -1,8 +1,8 @@
 # The castle's design language
 
 One look for every web app behind the castle gate: **home** (the dashboard at
-home.my-castle.net), **lights** (z2m-mcp's web UI), **maia**'s admin console
-and **llm-proxy**'s admin UI. Home is the reference: a faded castle behind the
+home.my-castle.net), **lights** (z2m-mcp's web UI), **maia**'s admin console,
+**llm-proxy**'s admin UI and the **calendar**. Home is the reference: a faded castle behind the
 page, see-through tiles over it, a system/light/dark switch, calm type. The
 other apps keep their structure and behaviour and take this look.
 
@@ -84,17 +84,47 @@ URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }
 ### Status
 
 Two values each: the vivid one for dots and fills (3:1 against the page is
-enough for a shape), the `-text` one for words (4.5:1).
+enough for a shape), the `-text` one for words (4.5:1 on `--bg`, `--surface`,
+`--surface-2` and strong glass, and on its own badge wash; `tests/contrast.rs`
+checks every text token on every one of those grounds).
 
 | token | light | dark |
 | --- | --- | --- |
-| `--ok` / `--ok-text` | `#16a34a` / `#15803d` | `#22c55e` / `#4ade80` |
-| `--warn` / `--warn-text` | `#ea580c` / `#b45309` | `#fb923c` / `#fdba74` |
+| `--ok` / `--ok-text` | `#16a34a` / `#137236` | `#22c55e` / `#4ade80` |
+| `--warn` / `--warn-text` | `#ea580c` / `#9e4908` | `#fb923c` / `#fdba74` |
 | `--err` / `--err-text` | `#dc2626` / `#b91c1c` | `#f87171` / `#fca5a5` |
 | `--info` | `#1c549b` | `#86b6ef` |
 
 Washes (a badge's background) are mixed from the vivid value:
 `color-mix(in srgb, var(--ok) 15%, transparent)`, never a literal.
+
+`--now` (`var(--err)`) draws the time grid's now line.
+
+### Hue
+
+A thing drawn in its own colour (a calendar's source, a tag, a room) sets one
+number, `--hue`, inline on its element (`style="--hue: 150"`); four tokens
+follow it there, in both themes, and fall back to hue 220 without it. They are
+declared on `:root` and re-derived on every element whose `style` names
+`--hue`, so a class that sets `--hue` does not move them: set it inline.
+
+| token | light | dark | for |
+| --- | --- | --- | --- |
+| `--hue-ink` | `hsl(h 60% 35%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch (3:1) |
+| `--hue-text` | `hsl(h 55% 26%)` | `hsl(h 55% 80%)` | words in the hue (4.5:1) |
+| `--hue-wash` | `color-mix(ink 16 %, --surface)` | same | a slot's fill |
+| `--hue-soft` | `color-mix(ink 10 %, --surface)` | same | a quieter fill (an automation) |
+
+The contrast holds at every hue from 0 to 359 in both themes:
+`--hue-text` reaches 4.5:1 on every surface, on `--hue-wash` and on a
+`.badge.hue`; `--hue-ink` reaches 3:1 on every surface; `--text` and
+`--text-soft` reach 4.5:1 on both washes. `tests/contrast.rs` computes all of
+it from the sheet, so a value that breaks it fails CI. HSL lightness is not
+even across hues (yellow and green are the bright ones), so the light values
+are set by the worst hue.
+
+A tile icon and the login mark keep their own lighter tint (`--mark-bg`,
+`--mark-ink`) from the same `--hue`.
 
 ### The picture
 
@@ -140,9 +170,10 @@ Declared beside the shared ones, by the app that needs them, never shared:
   become aliases of the shared tokens (`--border: var(--line)` and so on), so
   a panel that reads them keeps working and follows the new values.
 
-Two more are set on an element by the markup, not on `:root`: `--hue` (a
-number, the hue of a tile icon's or login mark's tile; 220 if unset) and
-`--fill` (a lit lamp tile's reported colour).
+Set on an element by the markup, not on `:root`: `--hue` (a number, the hue
+of a tile icon, a login mark or anything drawn in its own hue; 220 if unset),
+`--fill` (a lit lamp tile's reported colour) and, on the time grid, `--start`,
+`--len`, `--lane`, `--lanes` on a slot and `--at` on the now line (section 6).
 
 ## 3. Themes
 
@@ -246,7 +277,10 @@ Each entry: what it is, how it is drawn, which app has it today.
 - **Theme switch** (`.theme-switch`): section 3.
 - **Bar buttons**: `.icon-btn` (round, glass, for the settings gear and the
   menu), `.pill-btn` (text in a glass pill, for home's Edit and llm-proxy's
-  user menu). Pressed or open: strong glass, accent text, shadow.
+  user menu). Pressed or open: strong glass, accent text, shadow. A page's
+  one primary action ("New event") is a `.btn.primary.sm` in the bar's side
+  on a desk and an `.icon-btn` "+" there on a phone; there is no floating
+  button, which would cover the last row of every list.
 - **Menu** (`.menu`): a strong-glass dropdown with 10 px radius; items
   `--tap` high; a hairline before "Log out". It is absolutely positioned
   under its control's wrapper, which must be positioned (`position:
@@ -256,17 +290,32 @@ Each entry: what it is, how it is drawn, which app has it today.
   accent border at 45 %, lifted 2 px. Home's cards; a room on lights' rooms
   page can be one.
 - **Card** (`.card`): strong-glass panel for content; `.solid` for tables.
-  `.danger` rims it with `--err` for a removal section.
+  `.danger` rims it with `--err` for a removal section. `.flush` drops the
+  padding and clips its corners, for a grid or a table that runs edge to
+  edge (the calendar's week and month).
 - **Popover** (`.popover`): strong glass, 16 px radius, drops from a bar
   control; fixed and full width on a phone. Home's settings panel.
-- **Sheet** (`.sheet`): a right-hand panel for a record's form, strong glass,
-  full width on a phone, a scrim behind. llm-proxy's panels; maia's detail
-  rows could use it later.
+- **Sheet** (`.sheet` with `.sheet-head` and `.sheet-body`): a right-hand
+  panel for a record's form, strong glass, full width on a phone, a scrim
+  behind; `Escape`, the close button and the scrim close it. The close
+  button is `.close` in the head (an `.icon-btn` or a `.btn.ghost.round`).
+  A page fetched whole into the sheet goes in a `.sheet-body.flat`, which
+  flattens the page's own `.card`. **Docked** (`.sheet.docked`): beside a
+  page that stays live (the calendar's editor next to its week, which
+  refreshes behind it): no scrim, `aria-modal="false"`, under the top bar and
+  above the bottom bar, so the bar's controls stay in reach. llm-proxy's
+  panels; the calendar's editor, docked; maia's detail rows could use it.
+- **Dialog** (`.card.dialog`): a confirm, 26rem, centred near the top (20 vh)
+  on a scrim: a title, one sentence, the buttons. A native `<dialog
+  class="card dialog">` takes `--scrim` on its `::backdrop`; a scripted one is
+  a fixed `.card.dialog` over a `.scrim`. llm-proxy's and the calendar's
+  confirms.
 - **Status dot** (`.dot`): .7rem with a 4 px wash ring; `.sm` .5rem for a
   summary line. States ok / warn / err / unknown (muted). Home's card dots and
   header dot; lights' "not seen yet"; maia's chip dots; llm-proxy's pills.
 - **Badge** (`.badge`): 12 px 600 in a pill with a 15 % wash; ok / warn / err
-  / info / accent / muted; `.outline` for a count. One component for lights'
+  / info / accent / muted; `.outline` for a count; `.hue` in the element's
+  own hue (`--hue-text` on a wash of `--hue-ink`). One component for lights'
   badges, maia's chips and llm-proxy's pills. maia's `.chip` keeps working as
   an alias (its plugin contract names it).
 - **Note** (`.note`): a strong-glass line with a 4 px coloured left bar: what
@@ -286,15 +335,46 @@ Each entry: what it is, how it is drawn, which app has it today.
   setting is enabled); the switch sits in a `--tap` square so the target is
   44 px. llm-proxy's green `input.switch` becomes this.
 - **Segmented** (`.segmented`): a few choices as one control, the chosen one
-  on `--accent-soft`. Lights' On/Off/Toggle, maia's theme radios, llm-proxy's
-  filter row.
+  on `--accent-soft`. The choices are buttons (`aria-pressed` or `.on`), links
+  for a view switch (`aria-current`), or radio labels (`<label><input
+  type="radio">…</label>`, a form field with no script; the radio is hidden,
+  the label is the target and takes the focus ring). `.sm` is a shorter one
+  for a toolbar on a desk; under a coarse pointer it is `--tap` high like
+  the rest. A control that may run out of room is `.wrap` (it breaks
+  onto a second row and keeps every hairline) or `.fill` (equal columns),
+  `.fill-phone` for equal columns on a phone only. Lights' On/Off/Toggle,
+  maia's theme radios, llm-proxy's filter row, the calendar's ‹ Today › and
+  its repeat choices.
 - **Inputs** (`.input`, `.field`): opaque surface, strong-line border, 6 px
   radius, `--tap` high; label above in 12–13 px 600 muted, hint below; focus
   ring. `.fields` wraps them in a row; `.actions` holds the buttons.
+  `fieldset.group` holds a set of them under a `legend` drawn as a field
+  label, with no box.
+- **Pill checks** (`.pills` of `.check.pill`): a few booleans as pills, the
+  checkbox hidden, a checked one on `--accent-soft` with an accent rim.
+  Weekdays on a repeating event or a lights schedule; sources to include in a
+  feed.
+- **Swatch picker** (`.swatches`): one radio per hue, each a 44 px round
+  target whose label sets `--hue` and holds a `.swatch.hue.lg`; the chosen one
+  is ringed in its own `--hue-ink`. A calendar source's colour; a room's or an
+  app tile's hue if a settings form wants one.
+- **Swatch** (`.swatch`): a 14 px rounded square with a strong line, for a
+  colour the device reports (lights). `.swatch.hue` is a .8rem dot in the
+  element's `--hue-ink` (`.sm` .6rem, `.lg` 1.5rem).
 - **Slider** (`.slider`): label and value on one line, the range below; the
   colour-temperature one takes `--kelvin`. Lights.
 - **Toolbar** (`.toolbar`): filter input, a meta count, a segmented filter;
   wraps. maia's karma tools, llm-proxy's bars.
+- **Chips** (`.chips`): small pills in a row. Plain, a `li` is a static pill
+  (an alias with a remove button on lights, a route on llm-proxy).
+  **Toggle chips** (`.chips.toggle`): filters you switch on and off; the
+  chip's link or button carries `aria-pressed` and may hold a `.swatch.hue`
+  and a `.count`, and an optional second target (`.act`: "only", "×") sits
+  beside it in the chip, always visible since a touch screen has no hover. Off
+  (`aria-pressed="false"` or `li.off`) is dashed and muted with the swatch
+  hollow; `li.plain` holds a trailing "show all" link. `.scroll` keeps them on
+  one row you swipe on a phone instead of several stacked rows. The
+  calendar's sources; image-desk's and vision-desk's tags.
 - **Rows** (`ul.rows`): icon disc, title and facts, state, action; one line on
   a desk, two on a phone. Lights' devices and rooms; llm-proxy's recent list.
 - **Table** (`table.data` in a `.card.solid`, inside `.table-wrap`): heads
@@ -311,6 +391,36 @@ Each entry: what it is, how it is drawn, which app has it today.
   compact `.metric` inside a tile is home's.
 - **Facts** (`dl.facts`): term and value in two columns, one on a phone.
   Lights' About, maia's run details.
+- **Schedule** (`ul.schedule`): what happens when. Each `li` is a time
+  column (`.t`, tabular, a `b` for a second line) and a slot; `li.day` heads
+  a day (a bold number, the weekday, a muted word such as "today"), `li.more`
+  closes one ("3 more tomorrow"). A past row's slot is quieter (`--hue-soft`,
+  a faded bar, a lighter title), never faded below AA; the running row, or
+  with none the next one, sits on `--accent-soft` with its time in accent.
+  The calendar's agenda, home's today list, lights' schedule runs.
+- **Slot** (`.slot`): one event or run as a block in its hue: a 3 px
+  `--hue-ink` bar on the left, a `--hue-wash` fill, the title in 600 and a
+  `--text-soft` line under it. `.row` puts it on one line (a month cell, the all-day
+  row, a schedule row); `.auto` marks an automation, something no person
+  put there (a dashed bar, the quieter `--hue-soft`, a bolt drawn in
+  `currentColor`); `.more` is the "+2 more" link. A link slot lifts on hover.
+- **Time grid** (`.timegrid`): columns of time (a week's days, one day, or
+  any set of tracks) against an hours axis. A `.tg-head` row names the
+  columns (a muted weekday over a bold number; `.today` in accent), a
+  `.tg-allday` row holds `.slot.row`s for whole-day items, and the
+  `.tg-body` holds `.tg-hours` (the axis) and one `.tg-col` per column with
+  an hour line every `--hour-h` (2.25rem). Each row's first cell is the
+  gutter. The grid sets `--cols` (7), `--from` (its first hour) and `--hours`
+  (how many it shows); a `.slot` in a column sets `--start` and `--len` in
+  hours (9.5 is 09:30) and, beside others at the same time, `--lane` of
+  `--lanes`; `.tg-col.today` is washed in accent; `.tg-now` sets `--at` and
+  draws the now line in `--now` across that column. It goes in a
+  `.card.flush`; on a phone, once the columns fall under 5.5rem each, the
+  grid scrolls sideways. Under a coarse pointer a slot is at least `--tap`
+  tall however short its time, so an app placing lanes counts a slot as
+  lasting at least `--tap` ÷ `--hour-h` hours (about 1.2 h at the defaults)
+  and puts a neighbour that starts inside that span in the next lane. The
+  calendar's week and day; lights' runs this week could use it.
 - **Empty state** (`.empty`): dashed strong line, icon, bold first line, what
   to do next. All apps.
 - **Code and logs** (`pre`, `.log`): `--bg-sunken`, mono 13 px, soft wrap;
@@ -327,7 +437,26 @@ Each entry: what it is, how it is drawn, which app has it today.
 For home and lights (and any dense app on a phone):
 
 - Every control is at least 44 × 44 px under a coarse pointer (`--tap`), and
-  a small control (a switch, a caret) sits in a 44 px box.
+  a small control (a switch, a caret) sits in a 44 px box. The components
+  below say how each meets it.
+- Two older controls fall short of it today: `.btn.sm` (`--tap` minus .5rem,
+  36 px on a touch screen) and `.icon-btn` (`--tap` minus .125rem, 42 px).
+  They predate this table and get the coarse-pointer bump in a later release;
+  until then a page for touch uses `.btn` and `.btn.ghost.round`.
+- Nothing is reachable by hover alone: a second action on a chip or a row is
+  a visible target.
+
+  | component | its target under a coarse pointer |
+  | --- | --- |
+  | `.segmented` (links, buttons, radio labels; `.wrap`, `.fill`, `.fill-phone`) | each choice `--tap` high; `.sm` grows from 36 px to `--tap` |
+  | `.chips.toggle` | the chip `--tap` high, its link or button stretched to that height; the `.act` target `--tap` wide; `li.plain`'s link the same |
+  | `.check.pill` | `--tap` high always (`.check`'s min-height) |
+  | `.swatches` | each hue a `--tap` circle always |
+  | `.slot` as a link (in a schedule, a month cell, the all-day row, the time grid, `.more`) | at least `--tap` high, however short the event; see the time grid's lane rule |
+  | `.tg-head` column links | a muted line over a bold one plus padding, over 44 px high; a column is at least 5.5rem wide |
+  | `.sheet-head .close` | at least `--tap` square, whichever button it is |
+  | `.card.dialog` buttons | `.btn`, `--tap` high |
+
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and
   state in the corners; on = filled with the lamp's reported colour (warm
   white when it reports none) and a soft glow of it, ink picked for contrast;
@@ -348,7 +477,7 @@ How each should look when another app needs it:
 
 | element | app | the rule |
 | --- | --- | --- |
-| castle backdrop | home | every app, section 5; `.quiet` on dense screens |
+| castle backdrop | home | every app, section 5; `.quiet` on dense screens and behind the calendar's grids, where it would cross the hour lines |
 | metrics strip on a tile | home | `.metric` inside `.tile`; up to four, label under value |
 | settings popover (gear) | home | `.icon-btn` + `.popover`; a form, no script needed |
 | edit mode (drag to reorder) | home | `.pill-btn` pressed; dashed accent border on the movable cards, the dragged one at 55 %; a hint line under the head |
@@ -366,8 +495,6 @@ How each should look when another app needs it:
 | mood gauge and meters | maia | its own SVG, strokes from the tokens; the feeling scale stays maia's |
 | restart banner | maia | `.note.warn` with a primary small button, above the page head |
 | plugin panels | maia | unchanged contract; panels read the aliases |
-| side sheet for a record | llm-proxy | `.sheet` with `.sheet-head` and `.sheet-body`; `Escape`, the close button and the scrim close it |
-| confirm dialog | llm-proxy | a centred `.card` of 26rem on a scrim; title, one sentence, danger + ghost buttons |
 | setup checklist | llm-proxy | `.checklist` |
 | user menu in the bar | llm-proxy | `.pill-btn` + `.menu`, with the theme switch inside on a phone |
 | row menu (⋯) | llm-proxy | `.btn.ghost.sm` + `.menu`; danger item in `--err-text` |
@@ -425,6 +552,13 @@ changelog, and every app updated in the same round.
   badges, the switch becomes `.switch`, the toast moves to bottom-centre, the
   login becomes the shared card, theme from the shared cookie. Markup classes
   can stay with aliases where the JS builds them.
+- **calendar**: points `--castle` at its picture (on `.backdrop.quiet`); its
+  source colours move onto the hue tokens, its filter row onto toggle chips,
+  its agenda onto the schedule list and slots, its week and day onto the time
+  grid in a `.card.flush`, its forms onto `.segmented` radio labels, pill
+  checks, the swatch picker and `fieldset.group`, its confirm onto
+  `.card.dialog`, its editor onto a `.sheet.docked`; the phone's floating New
+  button becomes an `.icon-btn` "+" in the bar.
 - **maia**: its token sheet keeps every contract name as an alias of the
   shared tokens; its app sheet takes the glass sidebar, the faint backdrop,
   shared tables, badges and notes; the login becomes the shared card with her

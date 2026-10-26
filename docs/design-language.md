@@ -329,7 +329,8 @@ Each entry: what it is, how it is drawn, which app has it today.
   for a view switch (`aria-current`), or radio labels (`<label><input
   type="radio">…</label>`, a form field with no script; the radio is hidden,
   the label is the target and takes the focus ring). `.sm` is a shorter one
-  for a toolbar. A control that may run out of room is `.wrap` (it breaks
+  for a toolbar on a desk; under a coarse pointer it is `--tap` high like
+  the rest. A control that may run out of room is `.wrap` (it breaks
   onto a second row and keeps every hairline) or `.fill` (equal columns),
   `.fill-phone` for equal columns on a phone only. Lights' On/Off/Toggle,
   maia's theme radios, llm-proxy's filter row, the calendar's ‹ Today › and
@@ -423,7 +424,8 @@ For home and lights (and any dense app on a phone):
 
 - Every control is at least 44 × 44 px under a coarse pointer (`--tap`), and
   a small control (a switch, a caret) sits in a 44 px box. Toggle chips and
-  their second target grow to `--tap` under a coarse pointer; pill checks and
+  their second target and a small segmented control (`.segmented.sm`) grow
+  to `--tap` under a coarse pointer; pill checks and
   the swatch picker are `--tap` always.
 - Nothing is reachable by hover alone: a second action on a chip or a row is
   a visible target.

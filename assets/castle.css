@@ -419,6 +419,7 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
 .segmented > [aria-current], .segmented > label:has(input:checked) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .segmented > label:has(input:focus-visible), .segmented > a:focus-visible { z-index: 1; outline: none; box-shadow: inset var(--ring); }
 .segmented.sm > * { min-height: calc(var(--tap) - .5rem); padding: 0 var(--s3); font-size: var(--t-s); }
+@media (pointer: coarse) { .segmented.sm > * { min-height: var(--tap); } }   /* still 44 px under a thumb */
 /* .wrap may break onto a second row, .fill makes equal columns, .fill-phone
    does so on a phone only. Each cell draws its own hairline inside its left and
    top edge and sits 1px over its neighbours, so every row keeps its lines and

@@ -11,11 +11,12 @@
    .screen) so phone and desktop frames on one page can both be live, and
    carries the app accents the screens need.
 
-   Sections: 1 tokens · 2 base · 3 backdrop · 4 shell (top bar, tabs, bottom
-   bar, sidebar, home link, theme switch) · 5 surfaces (tile, card, panel)
-   · 6 text pieces · 7 status (dot, badge, note, toast) · 8 controls
-   (button, switch, inputs, segmented, slider) · 9 lists and tables ·
-   10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   Sections: 1 tokens (and the hue tokens) · 2 base · 3 backdrop · 4 shell
+   (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
+   (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
+   note, toast) · 8 controls (button, switch, inputs, segmented, slider,
+   chips, pill checks, swatch picker) · 9 lists and tables (rows, schedule,
+   slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
    13 empty state, pager, code/log · 14 motion.
 
    Every colour is a token, written once for both themes through
@@ -289,7 +290,7 @@ a.tile:hover .url { color: var(--accent-text); }
   border: 1px solid var(--line); border-radius: var(--r-l); background: var(--glass-strong); box-shadow: var(--shadow-lg); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 /* phone: the panel spans the screen under the top bar */
 @container frame (max-width: 47.99rem) { .popover { position: fixed; left: var(--s2); right: var(--s2); top: calc(var(--nav-h) + var(--s2)); width: auto; } }
-/* .sheet: a side panel for a record's form (llm-proxy); full width on a phone */
+/* .sheet: a side panel for a record's form (llm-proxy, the calendar); full width on a phone */
 .sheet { position: absolute; top: 0; right: 0; bottom: 0; z-index: 30; width: min(27.5rem, 100%); display: flex; flex-direction: column;
   background: var(--glass-strong); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); border-left: 1px solid var(--line); box-shadow: var(--shadow-lg); }
 .sheet .sheet-head { display: flex; align-items: center; gap: var(--s3); padding: var(--s3) var(--s4); border-bottom: 1px solid var(--line); }
@@ -408,6 +409,7 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
 .segmented > [aria-current], .segmented > label:has(input:checked) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .segmented > label:has(input:focus-visible), .segmented > a:focus-visible { z-index: 1; outline: none; box-shadow: inset var(--ring); }
 .segmented.sm > * { min-height: calc(var(--tap) - .5rem); padding: 0 var(--s3); font-size: var(--t-s); }
+@media (pointer: coarse) { .segmented.sm > * { min-height: var(--tap); } }   /* still 44 px under a thumb */
 /* .wrap may break onto a second row, .fill makes equal columns, .fill-phone
    does so on a phone only. Each cell draws its own hairline inside its left and
    top edge and sits 1px over its neighbours, so every row keeps its lines and
@@ -448,32 +450,6 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
 }
 /* phone: .scroll keeps the chips on one row you swipe, out to the card's edges */
 @container frame (max-width: 47.99rem) {
-  .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--s4) * -1); padding-inline: var(--s4); }
-  .chips.scroll > li { flex: none; }
-}
-
-/* ---------- 9. lists and tables ---------- */
-/* rows: a name, a state and an action per line (lights' devices, rooms) */
-ul.rows { list-style: none; margin: 0; padding: 0; }
-ul.rows > li { display: grid; grid-template-columns: auto minmax(min(11rem, 100%), 1fr) auto auto; align-items: center; gap: var(--s1) var(--s3); padding: var(--s3) 0; min-height: 3.75rem; }
-ul.rows > li + li { border-top: 1px solid var(--line); }
-.row-icon { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--surface-2); color: var(--muted); }
-.row-main { min-width: 0; }
-.row-title { display: block; font-weight: 600; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
-.row-sub, .row-facts { display: block; font-size: var(--t-s); color: var(--muted); overflow-wrap: anywhere; }
-.row-state { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--s2); font-size: var(--t-s); color: var(--muted); }
-.row-actions { display: flex; align-items: center; gap: var(--s2); }
-li.offline .row-title, li.offline .row-icon { opacity: .6; }
-.swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line-strong); vertical-align: -2px; }
-.swatch.hue { border: 2px solid var(--hue-ink); background: transparent; }
-.chips.toggle > li.plain { border: 0; background: none; }   /* a "show all" link at the end */
-.chips.toggle > li.plain > a { color: var(--accent-text); }
-@media (pointer: coarse) {
-  .chips.toggle > li { min-height: var(--tap); }
-  .chips.toggle > li > .act { min-width: var(--tap); }
-}
-/* phone: .scroll keeps the chips on one row you swipe, out to the card's edges */
-@media (width < 48rem) {
   .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--s4) * -1); padding-inline: var(--s4); }
   .chips.scroll > li { flex: none; }
 }

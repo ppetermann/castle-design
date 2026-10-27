@@ -1,7 +1,7 @@
 # Project agent memory
 
 castle-design is the shared design system of the castle's web apps (home,
-lights, maia's admin UI, llm-proxy's admin UI): `assets/castle.css`,
+lights, maia's admin UI, llm-proxy's admin UI, the calendar): `assets/castle.css`,
 `assets/castle.webp`, the rules in `docs/design-language.md`, and a tiny
 no-dependency crate (`src/lib.rs`) that compiles the assets in and carries
 the shared `theme` cookie helper. Apps pin it as a git dependency by tag
@@ -19,7 +19,7 @@ the shared `theme` cookie helper. Apps pin it as a git dependency by tag
   (`.frame`/`.screen`, `@container` queries, embedded picture). A component
   change lands in `assets/castle.css` and, when it shows, in the mockup's copy
   too.
-- **Token and class names are a contract** with four apps: adding is free;
+- **Token and class names are a contract** with five apps: adding is free;
   renaming or removing is a breaking change (new minor while 0.x, noted in
   `CHANGELOG.md`).
 - Local ladder = CI (`.github/workflows/ci.yml`): `cargo fmt --all -- --check`,

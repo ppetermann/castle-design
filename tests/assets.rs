@@ -382,8 +382,8 @@ fn media_overrides_follow_their_base_rule() {
     assert_overrides_follow_base("castle.css", &css_code());
 }
 
-#[test]
-fn mockup_overrides_follow_their_base_rule() {
+/// The mockup's frame-scoped copy of the sheet, without its comments.
+fn mockup_css() -> String {
     let mockup = include_str!("../docs/mockup.html");
     let start = mockup
         .find(r#"<style id="castle-css">"#)
@@ -393,7 +393,37 @@ fn mockup_overrides_follow_their_base_rule() {
         + mockup[start..]
             .find("</style>")
             .expect("unterminated style");
-    assert_overrides_follow_base("the mockup", &strip_comments(&mockup[start..end]));
+    strip_comments(&mockup[start..end])
+}
+
+#[test]
+fn mockup_overrides_follow_their_base_rule() {
+    assert_overrides_follow_base("the mockup", &mockup_css());
+}
+
+/// Selectors that take any `aria-current` as the current one, so a link a
+/// template marks `aria-current="false"` would be styled as chosen.
+fn bare_aria_current(code: &str) -> Vec<String> {
+    rules(code)
+        .into_iter()
+        .flat_map(|(_, selectors)| selectors)
+        .filter(|s| {
+            s.match_indices("[aria-current]")
+                .any(|(i, m)| !s[i + m.len()..].starts_with(r#":not([aria-current="false"])"#))
+        })
+        .collect()
+}
+
+#[test]
+fn aria_current_false_is_not_current() {
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let bare = bare_aria_current(&code);
+        assert!(bare.is_empty(), "bare [aria-current] in {sheet}: {bare:?}");
+    }
+    assert_eq!(
+        bare_aria_current(".pages > [aria-current] { color: red; }"),
+        [".pages > [aria-current]"]
+    );
 }
 
 /// Fails when an at-rule overrides a selector whose base rule comes later.

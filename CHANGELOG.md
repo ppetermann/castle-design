@@ -3,6 +3,17 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.5
+
+### Fixed
+
+- `.segmented` and `.pager .pages` no longer style a link marked
+  `aria-current="false"` as the current choice; any other `aria-current`
+  value still marks it.
+- The light `--hue-ink` is a little darker (`hsl(h 60% 34%)`, was 35%), so a
+  `.slot`'s bar reaches 3:1 on its own `--hue-wash` at every hue; it dipped to
+  2.91:1 around hue 60. The washes and `--hue-soft` follow it.
+
 ## 0.1.4
 
 ### Added

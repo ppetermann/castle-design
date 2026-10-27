@@ -100,12 +100,12 @@
 }
 /* hue tokens: a thing drawn in its own hue (a calendar's source, a tag, a room)
    sets --hue inline (style="--hue: 150") and these follow it; with no --hue
-   they take 220. --hue-ink for lines, dots and bars (3:1 on every surface),
+   they take 220. --hue-ink for lines, dots and bars (3:1 on every surface and its wash),
    --hue-text for words (4.5:1 on every surface and on the washes, at every
    hue, in both themes: tests/contrast.rs), --hue-wash for a block's fill,
    --hue-soft for a quieter one */
 :root, [style*="--hue"] {
-  --hue-ink:  light-dark(hsl(var(--hue, 220) 60% 35%), hsl(var(--hue, 220) 70% 68%));
+  --hue-ink:  light-dark(hsl(var(--hue, 220) 60% 34%), hsl(var(--hue, 220) 70% 68%));
   --hue-text: light-dark(hsl(var(--hue, 220) 55% 26%), hsl(var(--hue, 220) 55% 80%));
   --hue-wash: color-mix(in srgb, var(--hue-ink) 16%, var(--surface));
   --hue-soft: color-mix(in srgb, var(--hue-ink) 10%, var(--surface));
@@ -419,7 +419,7 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
 .segmented > a, .segmented > label { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .segmented > label { position: relative; }
 .segmented > label > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.segmented > [aria-current], .segmented > label:has(input:checked) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.segmented > [aria-current]:not([aria-current="false"]), .segmented > label:has(input:checked) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 .segmented > label:has(input:focus-visible), .segmented > a:focus-visible { z-index: 1; outline: none; box-shadow: inset var(--ring); }
 .segmented.sm > * { min-height: calc(var(--tap) - .5rem); padding: 0 var(--s3); font-size: var(--t-s); }
 @media (pointer: coarse) { .segmented.sm > * { min-height: var(--tap); } }   /* still 44 px under a thumb */
@@ -625,7 +625,7 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .pager { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); margin: var(--s3) 0 0; font-size: var(--t-s); color: var(--muted); }
 .pager .pages { display: inline-flex; gap: var(--s1); }
 .pager .pages > * { min-width: var(--tap); min-height: var(--tap); display: grid; place-items: center; border-radius: var(--r-s); border: 1px solid transparent; color: var(--text-soft); text-decoration: none; }
-.pager .pages > [aria-current] { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
+.pager .pages > [aria-current]:not([aria-current="false"]) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg-sunken); color: var(--text); font: var(--t-s)/1.5 var(--mono); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .log .t { color: var(--muted); } .log .e { color: var(--err-text); } .log .k { color: var(--accent-text); }
 .checklist { list-style: none; margin: 0; padding: 0; }

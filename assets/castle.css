@@ -1,7 +1,8 @@
 /* ======================================================================
    castle.css: the shared design language of the castle's web apps (home,
-   lights, maia's admin console, llm-proxy's admin UI). The rules behind it
-   are in docs/design-language.md; docs/mockup.html draws every component.
+   lights, maia's admin console, llm-proxy's admin UI and the calendar). The
+   rules behind it are in docs/design-language.md; docs/mockup.html draws
+   every component.
 
    Sections: 1 tokens (and the hue tokens) · 2 base · 3 backdrop · 4 shell
    (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces

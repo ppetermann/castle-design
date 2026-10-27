@@ -110,15 +110,16 @@ declared on `:root` and re-derived on every element whose `style` names
 
 | token | light | dark | for |
 | --- | --- | --- | --- |
-| `--hue-ink` | `hsl(h 60% 35%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch (3:1) |
+| `--hue-ink` | `hsl(h 60% 34%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch (3:1) |
 | `--hue-text` | `hsl(h 55% 26%)` | `hsl(h 55% 80%)` | words in the hue (4.5:1) |
 | `--hue-wash` | `color-mix(ink 16 %, --surface)` | same | a slot's fill |
 | `--hue-soft` | `color-mix(ink 10 %, --surface)` | same | a quieter fill (an automation) |
 
 The contrast holds at every hue from 0 to 359 in both themes:
 `--hue-text` reaches 4.5:1 on every surface, on `--hue-wash` and on a
-`.badge.hue`; `--hue-ink` reaches 3:1 on every surface; `--text` and
-`--text-soft` reach 4.5:1 on both washes. `tests/contrast.rs` computes all of
+`.badge.hue`; `--hue-ink` reaches 3:1 on every surface and on `--hue-wash`
+(a slot's bar sits on it); `--text` and `--text-soft` reach 4.5:1 on both
+washes. `tests/contrast.rs` computes all of
 it from the sheet, so a value that breaks it fails CI. HSL lightness is not
 even across hues (yellow and green are the bright ones), so the light values
 are set by the worst hue.

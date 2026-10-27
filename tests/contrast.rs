@@ -294,6 +294,14 @@ fn hue_tokens_meet_aa_over_the_whole_hue_range() {
                     AA_LARGE_OR_LINE,
                 );
             }
+            // a slot's bar on its own wash (the wash paints under the border)
+            check.pair(
+                &format!("--hue-ink {h} on --hue-wash"),
+                theme,
+                at("var(--hue-ink)"),
+                at("var(--hue-wash)"),
+                AA_LARGE_OR_LINE,
+            );
             // a slot: its title and its second line on its fill
             for fill in ["--hue-wash", "--hue-soft"] {
                 let bg = at(&format!("var({fill})"));

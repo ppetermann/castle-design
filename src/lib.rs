@@ -1,5 +1,5 @@
 //! The castle's design system, shared by its web apps (home, lights, maia's
-//! admin console, llm-proxy's admin UI).
+//! admin console, llm-proxy's admin UI and the calendar).
 //!
 //! The assets are compiled in: an app serves [`CSS`] and [`CASTLE_WEBP`] from
 //! its own routes (or inlines the CSS), so a build needs no network beyond the

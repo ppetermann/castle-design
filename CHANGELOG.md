@@ -3,6 +3,39 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.7
+
+### Added
+
+Everything here is opt-in: a page that uses none of the new classes looks as
+it did in 0.1.6.
+
+- The approval (`fieldset.choice.approval`): a choice that asks leave for one
+  step that cannot be undone. A mono `.kind` word in `--ask-text` before the
+  question, `ul.what` with what will happen, `details.preview` folding the
+  command or diff in a `pre` (18rem at most), and Approve (`.btn.primary`),
+  Deny… (`.btn.ghost.deny`, in err words) and an optional Edit…
+  (`.btn.ghost`) in `.options`. Answered, the chosen button
+  (`aria-pressed="true"`) stays at full strength while the others fade.
+- `.choice .reply`: a row under a choice's options for an answer in words
+  (an approval's reason or edited value): an `.input` or `textarea.input`,
+  its button and a `.hint`; `hidden` hides it.
+- The checklist's states and a plan's head: `.n.failed` (an `!` in
+  `--err-text` on an err wash, rimmed in `--err`), `.n.skipped` (dashed) with
+  `li.skipped` (its label struck through and muted), the current step's label
+  in `--accent-text` on `li.cur`, a `.step-note` under a label, `li.head` with
+  the list's title and a `.count`, and `.checklist.compact` for a chat bubble.
+- `details.superseded`: an earlier copy of a list folded to one dashed mono
+  line, with a link to the latest and the old list faded inside.
+- `tests/contrast.rs` holds the failed step's mark to AA on its wash and its
+  rim to 3:1 on every surface, reading both from the rule. (White on the vivid
+  `--err` fill would reach only 2.77:1 in the dark theme, so the failed disc is
+  a wash, like a badge.)
+- The design language documents the approval, the reply row and the
+  checklist's states, and the touch table their targets; the mockup's
+  foundations screen draws an open and an answered approval and a plan's
+  checklist with a superseded copy above it.
+
 ## 0.1.6
 
 ### Added

@@ -8,9 +8,9 @@
    (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
    (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
    note, toast, state card) · 8 controls (button, switch, inputs, segmented,
-   slider, chips, pill checks, swatch picker, choice) · 9 lists and tables
-   (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
-   13 empty state, pager, code/log · 14 motion.
+   slider, chips, pill checks, swatch picker, choice, approval) · 9 lists and
+   tables (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   13 empty state, pager, code/log, checklist · 14 motion.
 
    Every colour is a token, written once for both themes through
    light-dark(); no rule outside a custom property names a colour, and there
@@ -504,6 +504,27 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice .option[aria-pressed="true"]:disabled, .choice:disabled label.option:has(input:checked) { opacity: 1; }
 .choice .about { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--t-s); overflow-wrap: anywhere; }
 .choice .answered { margin: var(--s2) 0 0; color: var(--ask-text); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
+/* approval: a choice asking leave for one step that cannot be undone. A
+   fieldset.choice.approval: a mono .kind word before the legend's question,
+   ul.what with what will happen, details.preview folding the command or diff
+   in a pre, and in .options an Approve .btn.primary, a Deny… .btn.ghost.deny
+   (in err words) and an optional Edit… .btn.ghost. Deny and Edit open a
+   .reply row: a field, its button and a .hint. Answered, the fieldset is
+   disabled and the chosen button (aria-pressed) stays at full strength.
+   .reply serves any choice that is answered in words */
+.choice.approval > legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.choice.approval .kind { font: 600 var(--t-xs)/1.5 var(--mono); letter-spacing: .04em; color: var(--ask-text); }
+.choice.approval .what { clear: both; margin: 0; padding: var(--s1) 0 0 1.2em; color: var(--text-soft); font-size: var(--t-s); overflow-wrap: anywhere; }
+.choice .preview { clear: both; margin: var(--s2) 0 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); }
+.choice .preview > summary { padding-block: calc((var(--tap) - 1.5em) / 2); cursor: pointer; }
+.choice .preview > pre { margin: var(--s1) 0 0; max-height: 18rem; font-size: var(--t-xs); }
+.choice .deny, .choice .deny:hover { border-color: var(--err); color: var(--err-text); }
+.choice .options > .btn[aria-pressed="true"]:disabled { opacity: 1; }
+.choice .reply { clear: both; display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+.choice .reply[hidden] { display: none; }
+.choice .reply .input { flex: 1 1 14rem; min-width: 0; }
+.choice .reply textarea.input { min-height: 4.5rem; }
+.choice .reply .hint { flex-basis: 100%; margin: 0; font-size: var(--t-xs); }
 
 /* ---------- 9. lists and tables ---------- */
 /* rows: a name, a state and an action per line (lights' devices, rooms) */
@@ -686,6 +707,26 @@ pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--l
 .checklist .n.done { background: var(--ok); border-color: var(--ok); color: var(--on-fill); }
 .checklist .n.cur { border-color: var(--accent); color: var(--accent-text); }
 .checklist .sp { flex: 1; } .checklist .sp b { display: block; }
+/* checklist steps in their states: .n.done (✓ on --ok), .n.cur (accent rim,
+   its label in accent words on li.cur), .n.failed (! in err words on an err
+   wash), .n.skipped (dashed, li.skipped struck through) and a plain .n for one
+   still to do. li.head leads the list with a title and a .count; a .step-note
+   under a step's label says why. .compact tightens the rows for a chat bubble,
+   and details.superseded folds an earlier copy of a list to one line */
+.checklist.compact li { padding: var(--s1) 0; }
+.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
+.checklist li.head { justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); padding-top: 0; border-bottom-color: var(--line-strong); }
+.checklist .head > b { font-weight: 600; overflow-wrap: anywhere; }
+.checklist .head .count { color: var(--muted); font: var(--t-xs)/1.5 var(--mono); white-space: nowrap; }
+.checklist .n.failed { background: color-mix(in srgb, var(--err) 15%, transparent); border-color: var(--err); color: var(--err-text); }
+.checklist .n.skipped { border-style: dashed; }
+.checklist li.cur .sp > b { color: var(--accent-text); }
+.checklist li.skipped .sp { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.checklist .step-note { display: block; color: var(--muted); font-size: var(--t-xs); }
+details.superseded { padding: var(--s1) var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r-m); }
+details.superseded > summary { cursor: pointer; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
+details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; vertical-align: middle; }
+details.superseded > .checklist { margin-top: var(--s1); opacity: .7; }
 
 /* ---------- 14. motion ---------- */
 @media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp { transition: none; } a.tile:hover { transform: none; } }

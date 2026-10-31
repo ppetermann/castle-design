@@ -97,7 +97,8 @@ checks every text token on every one of those grounds).
 | `--ask` / `--ask-text` | `#6b4fb3` / `#573ba1` | `#b3a2ea` / `#c4b6f0` |
 
 `--ask` is a question waiting for a person: the bar of a choice form and of a
-state card that needs a decision, and the words of its badge and its answer.
+state card that needs a decision, and the words of its badge, its answer and
+an approval's kind word.
 It is violet so it reads apart from the accent (an action) and from warn (a
 problem); `--ask` reaches 3:1 on every surface, as a bar must.
 
@@ -406,6 +407,22 @@ Each entry: what it is, how it is drawn, which app has it today.
   fieldset is `disabled`: the other options fade, the chosen ones stay at
   full strength. A 4 px `--ask` bar on `--surface-2` marks it as a question.
   An app's chat draws one for an agent's question (OpenUI).
+- **Approval** (`fieldset.choice.approval`): a choice that asks leave for one
+  step that cannot be undone or that leaves the house (a merge, a send, a
+  delete). The legend opens with a mono `.kind` word (`APPROVAL`, in
+  `--ask-text`) before the question; `ul.what` says in a few lines what will
+  happen and what cannot be taken back; `details.preview` folds the command
+  or the diff in a `pre` (18rem at most, then it scrolls), closed until
+  opened. `.options` holds three fixed answers: **Approve** (`.btn.primary`),
+  **Deny…** (`.btn.ghost.deny`, its words and rim in err) and, when one
+  value can be changed, **Edit…** (`.btn.ghost`). Deny and Edit each open a
+  `.reply` row under the options: an `.input` (a reason, optional; or the
+  value to change, prefilled), its button and a `.hint`; `.reply` is the
+  same row for any choice answered in words. Answered, the fieldset is
+  `disabled`: the chosen button carries `aria-pressed="true"` and stays at
+  full strength, the others fade, and `p.answered` says what was sent. An
+  approval decides nothing by itself: the answer is words to whoever asked.
+  No app has it yet; it is an agent's ask in an app's chat (OpenUI).
 - **Rows** (`ul.rows`): icon disc, title and facts, state, action; one line on
   a desk, two on a phone. Lights' devices and rooms; llm-proxy's recent list.
 - **Table** (`table.data` in a `.card.solid`, inside `.table-wrap`): heads
@@ -466,8 +483,19 @@ Each entry: what it is, how it is drawn, which app has it today.
   to do next. All apps.
 - **Code and logs** (`pre`, `.log`): `--bg-sunken`, mono 13 px, soft wrap;
   `.t` timestamps muted, `.k` keys accent, `.e` errors err-text.
-- **Checklist** (`.checklist`): numbered discs, done in `--ok`, the current
-  one accent-rimmed. llm-proxy's Get started.
+- **Checklist** (`.checklist`): numbered discs, done in `--ok` (✓), the
+  current one accent-rimmed (`li.cur` puts its label in `--accent-text`), a
+  failed one an `!` in `--err-text` on an err wash with an err rim
+  (`.n.failed`), a skipped one dashed with its label struck through
+  (`.n.skipped`, `li.skipped`); a step still to do keeps its number. A
+  `.step-note` under a label says why in one muted line. For a plan someone
+  follows over time, `li.head` leads the list with its title and a `.count`
+  ("2 of 4 done · 1 failed", always in words, so the discs' colours are
+  never alone), and `.compact` tightens the rows for a chat bubble. When a
+  newer copy of the same list exists, the old one folds into
+  `details.superseded`: one dashed mono line saying so, with a `.btn.link`
+  to the latest, and the old list faded inside. llm-proxy's Get started; an
+  agent's plan in an app's chat (OpenUI).
 - **Login** (`.login`): one strong-glass card centred on the full castle: the
   app's mark (its home icon on a hue tile), its name, a sub line, the fields,
   one primary button, and the home link under it. Lights puts the passkey
@@ -498,6 +526,8 @@ For home and lights (and any dense app on a phone):
   | `.sheet-head .close` | at least `--tap` square, whichever button it is |
   | `.card.dialog` buttons | `.btn`, `--tap` high |
   | `.choice` options and submit | `.btn`, `--tap` high, growing with a wrapped label |
+  | `.choice .reply` (an approval's Deny and Edit, an answer in words) | `.input` and `.btn`, `--tap` high; `.preview`'s summary padded to `--tap` |
+  | `details.superseded` | its link to the latest `--tap` high |
   | `.grid-table` | no target; the box scrolls sideways under a finger |
 
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and

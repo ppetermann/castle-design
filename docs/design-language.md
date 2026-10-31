@@ -260,8 +260,9 @@ a phone still gets 44 px targets.
   accent line on top; the top bar keeps brand, home link (icon only) and side.
 - **Sidebar** (maia): 14.5rem of strong glass on the left; under 56rem a
   drawer behind a menu button in a 3.25rem app bar.
-- **Motion**: 0.2 s on hover lifts and 0.15 s on switches; everything off
-  under `prefers-reduced-motion`.
+- **Motion**: 0.2 s on hover lifts and 0.15 s on switches, and a wait's dot
+  pulsing (`castle-pulse`, 1.6 s); everything off under
+  `prefers-reduced-motion`.
 - **Focus**: 2 px accent outline, offset 2 px, on every focusable thing;
   inputs use `--ring` instead.
 
@@ -317,7 +318,9 @@ Each entry: what it is, how it is drawn, which app has it today.
   on a scrim: a title, one sentence, the buttons. A native `<dialog
   class="card dialog">` takes `--scrim` on its `::backdrop`; a scripted one is
   a fixed `.card.dialog` over a `.scrim`. llm-proxy's and the calendar's
-  confirms.
+  confirms. A confirm about an address (a link that leaves the hosts an app
+  trusts) shows it whole in a `.address` line, mono on `--bg-sunken`, so
+  the person reads where it goes before Open.
 - **Status dot** (`.dot`): .7rem with a 4 px wash ring; `.sm` .5rem for a
   summary line. States ok / warn / err / unknown (muted). Home's card dots and
   header dot; lights' "not seen yet"; maia's chip dots; llm-proxy's pills.
@@ -330,6 +333,13 @@ Each entry: what it is, how it is drawn, which app has it today.
   happened and why, an optional action. Transient outcomes (lights' flash,
   `.sticky` to stay in view while the page scrolls) and standing warnings
   (maia's attention rows, llm-proxy's errors) alike.
+- **Wait** (`.note.wait`): a note for a wait with a known end (a poll's next
+  check, a backoff): an accent bar and a `.dot` that pulses (still under
+  reduced motion), the `.what`, and in `.why` the word before a mono
+  `.countdown` the page counts from an absolute time ("next check in 3:52").
+  Once the time has passed it is `.due`: bar and dot muted, the dot still,
+  the countdown saying how long ago ("was due 09:30 · 2 min ago"), never a
+  negative count. An agent's wait in an app's chat (OpenUI).
 - **Toast** (`.toast`): a note that floats bottom-centre over the page for a
   few seconds, above the bottom bar on a phone. maia's and llm-proxy's toasts
   (llm-proxy's moves from bottom-right).
@@ -394,6 +404,11 @@ Each entry: what it is, how it is drawn, which app has it today.
   hollow; `li.plain` holds a trailing "show all" link. `.scroll` keeps them on
   one row you swipe on a phone instead of several stacked rows. The
   calendar's sources; image-desk's and vision-desk's tags.
+  **Link chips** (`.chips.links`): places to go, each pill holding one `<a>`
+  that fills it, with a mono `.glyph` for its kind (a change, a check run, a
+  commit, a page) before a short label. A link the app will not open (not
+  `https`) is `li.refused`: dashed and muted, the label and its address's
+  `.host` in mono, no anchor. An agent's links in an app's chat (OpenUI).
 - **Choice** (`fieldset.choice`): a question put to a person, answered in
   one tap or with several picks and a submit. The prompt is the `legend`;
   `.options` holds the options as `.btn.option`s and, for several picks, a
@@ -446,7 +461,13 @@ Each entry: what it is, how it is drawn, which app has it today.
   long tables are the first candidate.
 - **Stats** (`.stats > .stat`): strong-glass cells, label 12 px muted above a
   1.5rem value and a sub line. maia's overview and llm-proxy's overview; the
-  compact `.metric` inside a tile is home's.
+  compact `.metric` inside a tile is home's. A tone (`.stat.ok`, `.warn`,
+  `.err`) colours the value in its `-text` token, and the sub line says why,
+  so the colour is never alone. `.stat.flat` is a cell on `--surface-2`
+  without glass, for a panel that is glass already; `.stats.inchat` fits a
+  strip into a chat bubble (tighter cells, two a row on a phone) with a
+  `.caption` spanning the row under them ("as of 09:41"). An agent's report
+  in an app's chat (OpenUI).
 - **Facts** (`dl.facts`): term and value in two columns, one on a phone.
   Lights' About, maia's run details.
 - **Schedule** (`ul.schedule`): what happens when. Each `li` is a time
@@ -483,6 +504,14 @@ Each entry: what it is, how it is drawn, which app has it today.
   to do next. All apps.
 - **Code and logs** (`pre`, `.log`): `--bg-sunken`, mono 13 px, soft wrap;
   `.t` timestamps muted, `.k` keys accent, `.e` errors err-text.
+- **Diff** (`pre.diff`): a unified diff, one `span` per line: `.add` in
+  `--ok-text`, `.del` in `--err-text`, `.hunk` (`@@`) in `--accent-text`,
+  `.meta` (`---`, `+++`, `diff --git`) muted; the `+`/`-` marks stay in the
+  text, so the colours are never alone. `.diffhead` names the change in one
+  mono line: the `.path`, the `.plus` and `.minus` counts, the hunks, a link.
+  `details.diffblock` folds the `pre` under that line as its summary (▸/▾),
+  18rem at most, then it scrolls. An approval's preview of a diff uses the
+  same `pre.diff`. An agent's change in an app's chat (OpenUI).
 - **Checklist** (`.checklist`): numbered discs, done in `--ok` (✓), the
   current one accent-rimmed (`li.cur` puts its label in `--accent-text`), a
   failed one an `!` in `--err-text` on an err wash with an err rim
@@ -528,6 +557,9 @@ For home and lights (and any dense app on a phone):
   | `.choice` options and submit | `.btn`, `--tap` high, growing with a wrapped label |
   | `.choice .reply` (an approval's Deny and Edit, an answer in words) | `.input` and `.btn`, `--tap` high; `.preview`'s summary padded to `--tap` |
   | `details.superseded` | its link to the latest `--tap` high |
+  | `.chips.links` | each link fills its pill, `--tap` high under a finger |
+  | `details.diffblock` | its summary line padded to `--tap` |
+  | `.choice .reply` with a `textarea` | the box at least 4.5rem, its button at the box's foot |
   | `.grid-table` | no target; the box scrolls sideways under a finger |
 
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and

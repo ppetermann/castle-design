@@ -314,6 +314,53 @@ fn a_failed_step_meets_aa_on_every_surface() {
 }
 
 #[test]
+fn code_words_meet_aa_on_the_sunken_ground() {
+    // a diff's lines and a log's marks sit on --bg-sunken, which is no
+    // surface the text-token test covers; read each colour from its rule
+    let mut check = Check(Vec::new());
+    for theme in THEMES {
+        let bg = eval("var(--bg-sunken)", theme, 0.0);
+        for rule in [
+            "pre.diff .add",
+            "pre.diff .del",
+            "pre.diff .hunk",
+            "pre.diff .meta",
+        ] {
+            let fg = eval(&rule_value(rule, "color"), theme, 0.0);
+            check.pair(&format!("{rule} on --bg-sunken"), theme, fg, bg, AA_TEXT);
+        }
+        for text in ["--text", "--muted", "--accent-text", "--err-text"] {
+            let fg = eval(&format!("var({text})"), theme, 0.0);
+            check.pair(&format!("{text} on --bg-sunken"), theme, fg, bg, AA_TEXT);
+        }
+    }
+    check.done();
+}
+
+#[test]
+fn a_wait_and_a_tone_keep_their_contrast() {
+    // a wait's countdown and bar, and a stat's toned value on a flat cell
+    let mut check = Check(Vec::new());
+    for theme in THEMES {
+        let countdown = eval(&rule_value(".note.wait .countdown", "color"), theme, 0.0);
+        let bar = eval(&rule_value(".note.wait", "border-left-color"), theme, 0.0);
+        let flat = eval(&rule_value(".stat.flat", "background"), theme, 0.0);
+        for (ground, bg) in grounds(theme) {
+            let glass = eval("var(--glass-strong)", theme, 0.0).over(bg);
+            let what = format!("a wait's countdown over {ground}");
+            check.pair(&what, theme, countdown, glass, AA_TEXT);
+            let what = format!("a wait's bar over {ground}");
+            check.pair(&what, theme, bar, glass, AA_LARGE_OR_LINE);
+        }
+        for rule in [".stat.ok .value", ".stat.warn .value", ".stat.err .value"] {
+            let fg = eval(&rule_value(rule, "color"), theme, 0.0);
+            check.pair(&format!("{rule} on a flat cell"), theme, fg, flat, AA_TEXT);
+        }
+    }
+    check.done();
+}
+
+#[test]
 fn hue_tokens_meet_aa_over_the_whole_hue_range() {
     let mut check = Check(Vec::new());
     for theme in THEMES {

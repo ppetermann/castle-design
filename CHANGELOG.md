@@ -14,8 +14,10 @@ it did in 0.1.8.
   with its name under it, joined by a hairline. A step is `.done` (filled in
   `--text-soft`), `.here` (larger, in its tone: accent by default, `.ok`,
   `.ask`, `.warn` or `.err`, its name bold) or still ahead (hollow), and the
-  covered stretch before a `.done` step is darker. An agent's change or task
-  in an app's chat (OpenUI).
+  stretch after a `.done` step — the covered ground up to the current one —
+  is darker. Say which step is current without the colour too: the app puts
+  `aria-current="step"` on the here step and names the state in the list's
+  accessible name. An agent's change or task in an app's chat (OpenUI).
 
 ## 0.1.8
 

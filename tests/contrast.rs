@@ -314,6 +314,43 @@ fn a_failed_step_meets_aa_on_every_surface() {
 }
 
 #[test]
+fn a_steppers_here_disc_meets_its_floor_on_a_card() {
+    // the stepper's current-step disc carries the state, so its fill is a
+    // shape (3:1). A stepper sits on a card, like the checklist, so the
+    // card grounds are the claim; the tone comes from each state's own
+    // rule, and the .err disc is a ring in the same tone
+    let mut check = Check(Vec::new());
+    for theme in THEMES {
+        let surface = eval("var(--surface)", theme, 0.0);
+        let glass = eval("var(--glass-strong)", theme, 0.0).over(eval("var(--bg)", theme, 0.0));
+        for rule in [
+            "ol.stepper li.here",
+            "ol.stepper li.here.ok",
+            "ol.stepper li.here.ask",
+            "ol.stepper li.here.warn",
+            "ol.stepper li.here.err",
+        ] {
+            let tone = eval(&rule_value(rule, "--step-tone"), theme, 0.0);
+            check.pair(
+                &format!("a stepper's {rule} disc on --surface"),
+                theme,
+                tone,
+                surface,
+                AA_LARGE_OR_LINE,
+            );
+            check.pair(
+                &format!("a stepper's {rule} disc on strong glass"),
+                theme,
+                tone,
+                glass,
+                AA_LARGE_OR_LINE,
+            );
+        }
+    }
+    check.done();
+}
+
+#[test]
 fn code_words_meet_aa_on_the_sunken_ground() {
     // a diff's lines and a log's marks sit on --bg-sunken, which is no
     // surface the text-token test covers; read each colour from its rule

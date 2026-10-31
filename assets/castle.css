@@ -727,7 +727,7 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .login .foot { font-size: var(--t-xs); color: var(--muted); margin: var(--s2) 0 0; }
 .login .home-link { align-self: center; }
 
-/* ---------- 13. empty state, pager, code, diff ---------- */
+/* ---------- 13. empty state, pager, code/log, diff, checklist, stepper ---------- */
 .empty { display: grid; justify-items: center; gap: var(--s2); padding: var(--s6) var(--s4); border: 1px dashed var(--line-strong); border-radius: var(--r-m); color: var(--muted); text-align: center; }
 .empty svg.icon { width: 2rem; height: 2rem; }
 .empty p { margin: 0; max-width: 52ch; }
@@ -789,8 +789,9 @@ details.superseded > .checklist { margin-top: var(--s1); opacity: .7; }
 /* stepper: a thing's steps on one line, a disc per step with its name under
    it, joined by a hairline. Each li is .done (filled in --text-soft), .here
    (larger, in the step's tone: accent by default, .ok, .ask, .warn, .err) or
-   plain (hollow, still ahead). The covered stretch before a .done step is
-   drawn darker; a long name wraps at its hyphen. The colour is never alone:
+   plain (hollow, still ahead). The stretch after a .done step — the covered
+   ground up to the current step — is drawn darker; a long name wraps at its
+   hyphen. The colour is never alone:
    the .here disc is larger and its name bold. An agent's change or task in
    an app's chat (OpenUI) */
 ol.stepper { --node: .5rem; --here: .75rem; --box: .9rem; display: flex; margin: var(--s2) 0 0; padding: 0; list-style: none; min-width: 0; }

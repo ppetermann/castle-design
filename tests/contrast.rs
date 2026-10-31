@@ -210,6 +210,7 @@ fn text_tokens_meet_aa_on_every_surface() {
             "--warn-text",
             "--err-text",
             "--info",
+            "--ask-text",
         ] {
             let fg = eval(&format!("var({text})"), theme, 0.0);
             for (ground, bg) in grounds(theme) {
@@ -223,6 +224,9 @@ fn text_tokens_meet_aa_on_every_surface() {
             ("--err-text", "--err", 15),
             ("--info", "--info", 15),
             ("--muted", "--muted", 12),
+            // a .state-card's badge: its tone's words on a 15 % wash of the tone
+            ("--accent-text", "--accent", 15),
+            ("--ask-text", "--ask", 15),
         ] {
             let fg = eval(&format!("var({text})"), theme, 0.0);
             let mix = format!("color-mix(in srgb, var({wash}) {pct}%, transparent)");
@@ -246,6 +250,25 @@ fn text_tokens_meet_aa_on_every_surface() {
                 fg,
                 accent_soft.over(bg),
                 AA_TEXT,
+            );
+        }
+    }
+    check.done();
+}
+
+#[test]
+fn the_ask_bar_meets_aa_on_every_surface() {
+    // a choice form's and a needs-decision state card's 4 px bar: a line that carries meaning
+    let mut check = Check(Vec::new());
+    for theme in THEMES {
+        let fg = eval("var(--ask)", theme, 0.0);
+        for (ground, bg) in grounds(theme) {
+            check.pair(
+                &format!("--ask on {ground}"),
+                theme,
+                fg,
+                bg,
+                AA_LARGE_OR_LINE,
             );
         }
     }

@@ -94,6 +94,12 @@ checks every text token on every one of those grounds).
 | `--warn` / `--warn-text` | `#ea580c` / `#9e4908` | `#fb923c` / `#fdba74` |
 | `--err` / `--err-text` | `#dc2626` / `#b91c1c` | `#f87171` / `#fca5a5` |
 | `--info` | `#1c549b` | `#86b6ef` |
+| `--ask` / `--ask-text` | `#6b4fb3` / `#573ba1` | `#b3a2ea` / `#c4b6f0` |
+
+`--ask` is a question waiting for a person: the bar of a choice form and of a
+state card that needs a decision, and the words of its badge and its answer.
+It is violet so it reads apart from the accent (an action) and from warn (a
+problem); `--ask` reaches 3:1 on every surface, as a bar must.
 
 Washes (a badge's background) are mixed from the vivid value:
 `color-mix(in srgb, var(--ok) 15%, transparent)`, never a literal.
@@ -326,6 +332,17 @@ Each entry: what it is, how it is drawn, which app has it today.
 - **Toast** (`.toast`): a note that floats bottom-centre over the page for a
   few seconds, above the bottom bar on a phone. maia's and llm-proxy's toasts
   (llm-proxy's moves from bottom-right).
+- **State card** (`article.state-card`): one thing's state (a job, a task, a
+  run) in a few lines, on `--surface-2` with a 4 px bar in the state's
+  colour. A `header` holds a `.dot.sm`, the title as a `b`, a `.badge` with
+  the state's word and an optional `.task` id (mono, muted); a `ul` under it
+  holds the lines (`--text-soft`, `--t-s`). The state is a class on the card,
+  which colours the bar, the dot and the badge: `ok` and `done` in `--ok`,
+  `working` and `waiting` in `--accent`, `needs-decision` in `--ask`,
+  `blocked` and `failed` in `--err`; any other state is muted with a plain
+  badge. The badge always says the word, so the state is never colour
+  alone. An app's chat draws one for an agent's status block (OpenUI); a
+  dashboard's job list could use it.
 - **Buttons** (`.btn`): neutral (surface, strong line), `.primary` (accent),
   `.danger` (err), `.ghost` (transparent), `.link`, `.sm`, `.round`.
   `--tap` high, 6 px radius, 600. Neutral unless it is the one thing the form
@@ -376,6 +393,19 @@ Each entry: what it is, how it is drawn, which app has it today.
   hollow; `li.plain` holds a trailing "show all" link. `.scroll` keeps them on
   one row you swipe on a phone instead of several stacked rows. The
   calendar's sources; image-desk's and vision-desk's tags.
+- **Choice** (`fieldset.choice`): a question put to a person, answered in
+  one tap or with several picks and a submit. The prompt is the `legend`;
+  `.options` holds the options as `.btn.option`s and, for several picks, a
+  `.btn.primary` submit at the end of the same row; a `p.about` per option
+  with a description (`<b>label</b>: what it means`), and `p.answered`
+  (mono, `--ask-text`) once it is answered or on its way. The options are
+  buttons carrying `aria-pressed` (a script answers on a tap, or toggles the
+  picks) or, with no script, `label.btn.option`s holding a hidden radio (one
+  answer) or checkbox (several) that a form posts; a chosen one is drawn
+  pressed (an accent rim on `--accent-soft`). Long labels wrap. Answered, the
+  fieldset is `disabled`: the other options fade, the chosen ones stay at
+  full strength. A 4 px `--ask` bar on `--surface-2` marks it as a question.
+  An app's chat draws one for an agent's question (OpenUI).
 - **Rows** (`ul.rows`): icon disc, title and facts, state, action; one line on
   a desk, two on a phone. Lights' devices and rooms; llm-proxy's recent list.
 - **Table** (`table.data` in a `.card.solid`, inside `.table-wrap`): heads
@@ -384,6 +414,16 @@ Each entry: what it is, how it is drawn, which app has it today.
   (`td.lead` title, `td.trail` beside it, `data-label` names a fact, `.end`
   the buttons); maia's `.stack` and llm-proxy's `data-label` tables both map
   onto it.
+- **Grid table** (`.grid-table > table`): a small table of plain cells whose
+  columns nobody declared (an agent's comparison, a pasted grid), where
+  `table.data` needs to know which column is the title and which a number.
+  Every cell ruled in `--line-strong`, the head row 600 on a faint `--hover`
+  wash, numbers tabular in every cell (`.num` right-aligns a column), an
+  optional `caption` above on the left in muted `--t-xs`. The table is as
+  wide as its cells: heads stay on one line and a cell wraps only past
+  20rem, and the `.grid-table` box scrolls sideways when that is wider than
+  its place, as on a phone, instead of squeezing every column to a word.
+  An app's chat draws one for an agent's table (OpenUI).
 - **Pager** (`.pager`): "5 of 14" left, page numbers right as `--tap`
   squares, the current one on `--accent-soft`. New; no app pages today, maia's
   long tables are the first candidate.
@@ -457,6 +497,8 @@ For home and lights (and any dense app on a phone):
   | `.tg-head` column links | a muted line over a bold one plus padding, over 44 px high; a column is at least 5.5rem wide |
   | `.sheet-head .close` | at least `--tap` square, whichever button it is |
   | `.card.dialog` buttons | `.btn`, `--tap` high |
+  | `.choice` options and submit | `.btn`, `--tap` high, growing with a wrapped label |
+  | `.grid-table` | no target; the box scrolls sideways under a finger |
 
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and
   state in the corners; on = filled with the lamp's reported colour (warm

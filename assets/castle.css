@@ -7,9 +7,9 @@
    Sections: 1 tokens (and the hue tokens) · 2 base · 3 backdrop · 4 shell
    (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
    (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
-   note, toast) · 8 controls (button, switch, inputs, segmented, slider,
-   chips, pill checks, swatch picker) · 9 lists and tables (rows, schedule,
-   slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   note, toast, state card) · 8 controls (button, switch, inputs, segmented,
+   slider, chips, pill checks, swatch picker, choice) · 9 lists and tables
+   (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
    13 empty state, pager, code/log · 14 motion.
 
    Every colour is a token, written once for both themes through
@@ -69,6 +69,8 @@
   --warn:      light-dark(#ea580c, #fb923c);  --warn-text: light-dark(#9e4908, #fdba74);
   --err:       light-dark(#dc2626, #f87171);  --err-text:  light-dark(#b91c1c, #fca5a5);
   --info:      light-dark(#1c549b, #86b6ef);
+  /* a question waiting for a person: a choice form's bar, a state card that needs a decision */
+  --ask:       light-dark(#6b4fb3, #b3a2ea);  --ask-text:  light-dark(#573ba1, #c4b6f0);
   --now:       var(--err);                    /* the time grid's now line */
 
   /* the castle behind the page: a wash over the image carries the theme */
@@ -356,6 +358,23 @@ dialog.dialog::backdrop { background: var(--scrim); }
 .toast { position: fixed; left: 50%; bottom: calc(var(--s5) + var(--tabbar-pad, 0px)); z-index: 40; transform: translateX(-50%); max-width: min(92%, 35rem); padding: var(--s3) var(--s4);
   border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--r-m); background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow-lg); font-size: var(--t-s); }
 .toast.ok { border-left-color: var(--ok); } .toast.err { border-left-color: var(--err); }
+/* state card: one thing's state (a job, a task, a run) in a few lines: a bar,
+   a dot and a badge in the state's colour, a title, an optional task id. The
+   state is a class: ok and done in --ok, working and waiting in --accent,
+   needs-decision in --ask, blocked and failed in --err; any other is muted
+   with a plain badge. The badge says the state in words, so the colour is
+   never alone */
+.state-card { --tone: var(--muted); min-width: 0; padding: var(--s2) var(--s3); border-left: 4px solid var(--tone); border-radius: var(--r-m); background: var(--surface-2); }
+.state-card.ok, .state-card.done { --tone: var(--ok); --tone-text: var(--ok-text); }
+.state-card.working, .state-card.waiting { --tone: var(--accent); --tone-text: var(--accent-text); }
+.state-card.needs-decision { --tone: var(--ask); --tone-text: var(--ask-text); }
+.state-card.blocked, .state-card.failed { --tone: var(--err); --tone-text: var(--err-text); }
+.state-card > header { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.state-card > header > b { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.state-card .dot { background: var(--tone); box-shadow: none; }
+.state-card:is(.ok, .done, .working, .waiting, .needs-decision, .blocked, .failed) .badge { color: var(--tone-text); background: color-mix(in srgb, var(--tone) 15%, transparent); }
+.state-card .task { min-width: 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
+.state-card > ul { margin: var(--s1) 0 0; padding-left: 1.2em; color: var(--text-soft); font-size: var(--t-s); overflow-wrap: anywhere; }
 
 /* ---------- 8. controls ---------- */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s2); min-height: var(--tap); padding: 0 var(--s4); border: 1px solid var(--line-strong); border-radius: var(--r-s);
@@ -467,6 +486,24 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
   .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--s4) * -1); padding-inline: var(--s4); }
   .chips.scroll > li { flex: none; }
 }
+/* choice: a question put to a person, in the --ask colour. A fieldset, the
+   prompt its legend; the options in .options as .btn.option buttons
+   (aria-pressed) or as label.btn.option holding a hidden radio (one answer)
+   or checkbox (several, sent with a submit .btn.primary in the same row);
+   a p.about per option that has a description; p.answered once answered.
+   Answered, the fieldset is disabled: the options fade, the chosen stay */
+fieldset.choice { min-width: 0; margin: 0; padding: var(--s2) var(--s3); border: 0; border-left: 4px solid var(--ask); border-radius: var(--r-m); background: var(--surface-2); }
+fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font-weight: 600; overflow-wrap: anywhere; }
+.choice .options { clear: both; display: flex; flex-wrap: wrap; gap: var(--s2); padding-top: var(--s2); }
+.choice .option { padding-block: var(--s1); text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.choice label.option { position: relative; }
+.choice label.option > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.choice .option[aria-pressed="true"], .choice label.option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-text); }
+.choice label.option:has(input:focus-visible) { box-shadow: var(--ring); }
+.choice:disabled label.option { opacity: .5; cursor: not-allowed; }
+.choice .option[aria-pressed="true"]:disabled, .choice:disabled label.option:has(input:checked) { opacity: 1; }
+.choice .about { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--t-s); overflow-wrap: anywhere; }
+.choice .answered { margin: var(--s2) 0 0; color: var(--ask-text); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
 
 /* ---------- 9. lists and tables ---------- */
 /* rows: a name, a state and an action per line (lights' devices, rooms) */
@@ -514,6 +551,19 @@ table.data th .sort { color: var(--accent-text); font-size: .7em; margin-left: .
   table.stack td.end { order: 4; flex: 1 1 100%; }
   table.stack tbody tr:hover > td { background: none; }
 }
+/* grid table: a small table of plain cells (an agent's comparison, a pasted
+   grid) whose columns are not known: every cell ruled, the head on a faint
+   wash, numbers tabular in every cell (.num right-aligns one), the caption
+   above on the left. The table is as wide as its cells (heads on one line, a
+   cell wrapping only past 20rem), and the .grid-table box scrolls sideways
+   when that is wider than its place, as on a phone */
+.grid-table { max-width: 100%; overflow-x: auto; }
+.grid-table > table { width: max-content; border-collapse: collapse; font-size: var(--t-s); font-variant-numeric: tabular-nums; }
+.grid-table caption { caption-side: top; padding-bottom: var(--s1); color: var(--muted); font-size: var(--t-xs); text-align: left; }
+.grid-table th, .grid-table td { padding: var(--s1) var(--s2); border: 1px solid var(--line-strong); text-align: left; vertical-align: top; }
+.grid-table th { background: var(--hover); font-weight: 600; white-space: nowrap; }
+.grid-table td { max-width: 20rem; overflow-wrap: anywhere; }
+.grid-table .num { text-align: right; }
 dl.facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s4); margin: 0 0 var(--s3); }
 dl.facts dt { color: var(--muted); font-size: var(--t-s); }
 dl.facts dd { margin: 0; overflow-wrap: anywhere; }

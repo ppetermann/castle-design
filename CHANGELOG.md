@@ -3,6 +3,43 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.6
+
+### Added
+
+Everything here is opt-in: a page that uses none of the new classes looks as
+it did in 0.1.5.
+
+- `--ask` and `--ask-text`, for a question waiting for a person, in both
+  themes; `--ask-text` reaches AA on every surface and on its badge wash,
+  `--ask` 3:1 as a bar (`tests/contrast.rs`).
+- The state card (`article.state-card`): a title, a state badge, an optional
+  task id and a few lines, its bar, dot and badge coloured by the state class
+  (`ok`, `done`, `working`, `waiting`, `needs-decision`, `blocked`,
+  `failed`; any other muted).
+- The choice form (`fieldset.choice`): a prompt, options as `.btn.option`
+  buttons (`aria-pressed`) or labels holding a hidden radio or checkbox, a
+  description line per option (`.about`), a submit for several picks and the
+  answer (`.answered`); answered, the fieldset is disabled and the chosen
+  options stay at full strength.
+- The grid table (`.grid-table`): every cell ruled, numbers tabular, a
+  caption, the table as wide as its cells and scrolling sideways in its box
+  on a phone.
+- The design language documents the three and the mockup's foundations
+  screen draws them. They are what an app's chat draws for an agent's OpenUI
+  blocks (a status, a table, a question).
+- An app that keeps its own copies of these moves onto them by: naming the
+  choice's option row `.options`; putting the state's own word on the card
+  (`working`, `needs-decision`, …) instead of a colour name, since the sheet
+  maps the seven states itself; and dropping its own `--ask` and
+  `--ask-text` and any dot or badge it drew in them.
+
+### Fixed
+
+- The mockup's copy of `.btn` no longer outranks `.btn.primary` and the
+  other variants, so its primary and danger buttons are drawn as castle.css
+  draws them (the sheet itself was right).
+
 ## 0.1.5
 
 ### Fixed

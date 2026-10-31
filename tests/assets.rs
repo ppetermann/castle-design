@@ -446,3 +446,41 @@ fn assert_overrides_follow_base(sheet: &str, code: &str) {
         "{sheet}: overrides that come before the base rule they override: {misplaced:?}"
     );
 }
+
+/// The states a `.state-card` colours: each class that sets `--tone-text`
+/// must also be in the `:is()` list that colours its badge, and the other way
+/// round, or a state would get a coloured bar beside a plain badge.
+#[test]
+fn state_card_states_colour_their_badge() {
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        // each rule is "head { body" between closing braces (a media query's
+        // own head sits before the rule's and is cut off at its brace)
+        let mut toned: Vec<String> = Vec::new();
+        for rule in code.split('}') {
+            let Some((head, body)) = rule.rsplit_once('{') else {
+                continue;
+            };
+            let head = head.rsplit_once('{').map_or(head, |(_, h)| h);
+            if !body.contains("--tone-text:") {
+                continue;
+            }
+            for selector in head.split(',') {
+                let class = selector.trim().strip_prefix(".state-card.");
+                toned.push(class.expect("a state class").to_owned());
+            }
+        }
+        let start = code.find(".state-card:is(").expect("the badge rule") + 15;
+        let end = start + code[start..].find(')').unwrap();
+        let mut listed: Vec<String> = code[start..end]
+            .split(',')
+            .map(|s| s.trim().trim_start_matches('.').to_owned())
+            .collect();
+        toned.sort();
+        listed.sort();
+        assert_eq!(
+            toned, listed,
+            "{sheet}: state card tones and badge list differ"
+        );
+        assert_eq!(toned.len(), 7, "{sheet}: {toned:?}");
+    }
+}

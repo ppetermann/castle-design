@@ -555,10 +555,10 @@ For home and lights (and any dense app on a phone):
   | `.sheet-head .close` | at least `--tap` square, whichever button it is |
   | `.card.dialog` buttons | `.btn`, `--tap` high |
   | `.choice` options and submit | `.btn`, `--tap` high, growing with a wrapped label |
-  | `.choice .reply` (an approval's Deny and Edit, an answer in words) | `.input` and `.btn`, `--tap` high; `.preview`'s summary padded to `--tap` |
+  | `.choice .reply` (an approval's Deny and Edit, an answer in words) | `.input` and `.btn`, `--tap` high; `.preview`'s summary at least `--tap` high |
   | `details.superseded` | its link to the latest `--tap` high |
   | `.chips.links` | each link fills its pill, `--tap` high under a finger |
-  | `details.diffblock` | its summary line padded to `--tap` |
+  | `details.diffblock` | its summary line at least `--tap` high, its head centred in it |
   | `.choice .reply` with a `textarea` | the box at least 4.5rem, its button at the box's foot |
   | `.grid-table` | no target; the box scrolls sideways under a finger |
 

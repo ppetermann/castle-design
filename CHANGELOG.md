@@ -14,7 +14,7 @@ it did in 0.1.7.
   `--ok-text`, `.del` in `--err-text`, `.hunk` in `--accent-text` and `.meta`
   muted. `.diffhead` names the change in one mono line (`.path`, `.plus` and
   `.minus` counts, a link), and `details.diffblock` folds the `pre` under it
-  (18rem at most, its summary padded to `--tap`). An approval's preview of a
+  (18rem at most, its summary at least `--tap` high). An approval's preview of a
   diff now needs no rules of its own.
 - Stats with a tone: `.stat.ok`, `.stat.warn` and `.stat.err` colour the
   value in their `-text` token; `.stat.flat` is a cell on `--surface-2`
@@ -35,6 +35,13 @@ it did in 0.1.7.
 - `tests/contrast.rs` holds a diff's line colours and the code words on
   `--bg-sunken`, a wait's countdown and bar, and a toned stat on a flat cell
   to AA in both themes.
+
+### Fixed
+
+- An approval's `.preview` summary is at least `--tap` high: its padding was
+  worked out from a font larger than its own, so it stood about 32px tall under
+  a 40px `--tap`. It is a flex row now, with its own ▸/▾ mark in place of the
+  browser's.
 
 ## 0.1.7
 

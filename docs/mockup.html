@@ -528,7 +528,10 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice.approval .kind { font: 600 var(--t-xs)/1.5 var(--mono); letter-spacing: .04em; color: var(--ask-text); }
 .choice.approval .what { clear: both; margin: 0; padding: var(--s1) 0 0 1.2em; color: var(--text-soft); font-size: var(--t-s); overflow-wrap: anywhere; }
 .choice .preview { clear: both; margin: var(--s2) 0 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); }
-.choice .preview > summary { padding-block: calc((var(--tap) - 1.5em) / 2); cursor: pointer; }
+.choice .preview > summary { display: flex; align-items: center; gap: var(--s1); min-height: var(--tap); cursor: pointer; list-style: none; }
+.choice .preview > summary::-webkit-details-marker { display: none; }
+.choice .preview > summary::before { content: "▸"; }
+.choice .preview[open] > summary::before { content: "▾"; }
 .choice .preview > pre { margin: var(--s1) 0 0; max-height: 18rem; font-size: var(--t-xs); }
 .choice .deny, .choice .deny:hover { border-color: var(--err); color: var(--err-text); }
 .choice .options > .btn[aria-pressed="true"]:disabled { opacity: 1; }
@@ -741,7 +744,7 @@ pre.diff .meta { color: var(--muted); }
 .diffhead .plus { color: var(--ok-text); }
 .diffhead .minus { color: var(--err-text); }
 .diffhead a { color: var(--accent-text); }
-details.diffblock > summary { display: block; padding-block: calc((var(--tap) - 1.5em) / 2); cursor: pointer; list-style: none; }
+details.diffblock > summary { display: flex; align-items: center; min-height: var(--tap); padding-block: var(--s1); cursor: pointer; list-style: none; }
 details.diffblock > summary::-webkit-details-marker { display: none; }
 details.diffblock > summary .diffhead::before { content: "▸"; color: var(--muted); }
 details.diffblock[open] > summary .diffhead::before { content: "▾"; }

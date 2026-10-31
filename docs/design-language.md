@@ -422,6 +422,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   `disabled`: the chosen button carries `aria-pressed="true"` and stays at
   full strength, the others fade, and `p.answered` says what was sent. An
   approval decides nothing by itself: the answer is words to whoever asked.
+  No app has it yet; it is an agent's ask in an app's chat (OpenUI).
 - **Rows** (`ul.rows`): icon disc, title and facts, state, action; one line on
   a desk, two on a phone. Lights' devices and rooms; llm-proxy's recent list.
 - **Table** (`table.data` in a `.card.solid`, inside `.table-wrap`): heads

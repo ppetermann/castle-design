@@ -704,6 +704,8 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
    still to do. li.head leads the list with a title and a .count; a .step-note
    under a step's label says why. .compact tightens the rows for a chat bubble,
    and details.superseded folds an earlier copy of a list to one line */
+.checklist.compact li { padding: var(--s1) 0; }
+.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
 .checklist li.head { justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); padding-top: 0; border-bottom-color: var(--line-strong); }
 .checklist .head > b { font-weight: 600; overflow-wrap: anywhere; }
 .checklist .head .count { color: var(--muted); font: var(--t-xs)/1.5 var(--mono); white-space: nowrap; }
@@ -712,8 +714,6 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .checklist li.cur .sp > b { color: var(--accent-text); }
 .checklist li.skipped .sp { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
 .checklist .step-note { display: block; color: var(--muted); font-size: var(--t-xs); }
-.checklist.compact li { padding: var(--s1) 0; }
-.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
 details.superseded { padding: var(--s1) var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r-m); }
 details.superseded > summary { cursor: pointer; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
 details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; vertical-align: middle; }
@@ -1354,9 +1354,9 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
     <div class="stats"><a class="stat" href="#"><span class="value">4</span><span class="label">backends</span></a><a class="stat" href="#"><span class="value">12</span><span class="label">models</span></a><a class="stat" href="#"><span class="value">7</span><span class="label">API keys</span></a><a class="stat" href="#"><span class="value">3</span><span class="label">users</span></a><a class="stat" href="#"><span class="value">1 842</span><span class="label">requests 24 h</span></a><a class="stat" href="#"><span class="value">0.4 %</span><span class="label">errors 24 h</span></a></div>
     <h2 class="section-h">Get started</h2>
     <div class="card"><ol class="checklist">
-      <li><span class="n done">✓</span><span class="sp"><b>Add a backend</b><span class="hint" style="margin:0">The upstream server that actually runs a model (vLLM, OpenAI, OpenRouter, Ollama…).</span></span></li>
-      <li><span class="n done">✓</span><span class="sp"><b>Add a model</b><span class="hint" style="margin:0">The name clients send in the model field, routed to a backend.</span></span></li>
-      <li><span class="n cur">3</span><span class="sp"><b>Create an API key</b><span class="hint" style="margin:0">Pick which models the key may call while creating it.</span></span><a class="btn primary sm" href="#">Create key</a></li></ol></div>
+      <li><span class="n done">✓</span><span class="sp"><b>Add a backend</b><span class="step-note">The upstream server that actually runs a model (vLLM, OpenAI, OpenRouter, Ollama…).</span></span></li>
+      <li><span class="n done">✓</span><span class="sp"><b>Add a model</b><span class="step-note">The name clients send in the model field, routed to a backend.</span></span></li>
+      <li><span class="n cur">3</span><span class="sp"><b>Create an API key</b><span class="step-note">Pick which models the key may call while creating it.</span></span><a class="btn primary sm" href="#">Create key</a></li></ol></div>
     <h2 class="section-h">Recent requests</h2>
     <div class="card solid"><ul class="rows">
       <li style="grid-template-columns:1fr auto;min-height:0;padding:.5rem 0"><div class="row-main"><a class="row-title" href="#">llama3-8b <span class="muted" style="font-weight:400">→ gpu-vllm</span></a></div><span class="muted num">just now</span></li>

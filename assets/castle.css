@@ -713,6 +713,8 @@ pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--l
    still to do. li.head leads the list with a title and a .count; a .step-note
    under a step's label says why. .compact tightens the rows for a chat bubble,
    and details.superseded folds an earlier copy of a list to one line */
+.checklist.compact li { padding: var(--s1) 0; }
+.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
 .checklist li.head { justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); padding-top: 0; border-bottom-color: var(--line-strong); }
 .checklist .head > b { font-weight: 600; overflow-wrap: anywhere; }
 .checklist .head .count { color: var(--muted); font: var(--t-xs)/1.5 var(--mono); white-space: nowrap; }
@@ -721,8 +723,6 @@ pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--l
 .checklist li.cur .sp > b { color: var(--accent-text); }
 .checklist li.skipped .sp { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
 .checklist .step-note { display: block; color: var(--muted); font-size: var(--t-xs); }
-.checklist.compact li { padding: var(--s1) 0; }
-.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
 details.superseded { padding: var(--s1) var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r-m); }
 details.superseded > summary { cursor: pointer; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
 details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; vertical-align: middle; }

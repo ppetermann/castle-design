@@ -275,6 +275,44 @@ fn the_ask_bar_meets_aa_on_every_surface() {
     check.done();
 }
 
+/// A declaration's value in the first rule whose selector is exactly `selector`.
+fn rule_value(selector: &str, property: &str) -> String {
+    let head = format!("\n{selector} {{");
+    let start = CSS
+        .find(&head)
+        .unwrap_or_else(|| panic!("no rule {selector}"))
+        + head.len();
+    let body = &CSS[start..start + CSS[start..].find('}').expect("an unclosed rule")];
+    body.split(';')
+        .filter_map(|d| d.split_once(':'))
+        .find(|(name, _)| name.trim() == property)
+        .map(|(_, value)| value.trim().to_owned())
+        .unwrap_or_else(|| panic!("{selector} sets no {property}"))
+}
+
+#[test]
+fn a_failed_step_meets_aa_on_every_surface() {
+    // the checklist's failed disc: its ! in err words on an err wash, its rim
+    // in --err; read from the rule itself, so a change to it is checked too
+    let mut check = Check(Vec::new());
+    let rule = ".checklist .n.failed";
+    let (ink, wash, rim) = (
+        rule_value(rule, "color"),
+        rule_value(rule, "background"),
+        rule_value(rule, "border-color"),
+    );
+    for theme in THEMES {
+        for (ground, bg) in grounds(theme) {
+            let fill = eval(&wash, theme, 0.0).over(bg);
+            let what = format!("a failed step's mark on {ground}");
+            check.pair(&what, theme, eval(&ink, theme, 0.0), fill, AA_TEXT);
+            let what = format!("a failed step's rim on {ground}");
+            check.pair(&what, theme, eval(&rim, theme, 0.0), bg, AA_LARGE_OR_LINE);
+        }
+    }
+    check.done();
+}
+
 #[test]
 fn hue_tokens_meet_aa_over_the_whole_hue_range() {
     let mut check = Check(Vec::new());

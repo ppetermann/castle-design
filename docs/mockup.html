@@ -15,9 +15,9 @@
    (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
    (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
    note, toast, state card) · 8 controls (button, switch, inputs, segmented,
-   slider, chips, pill checks, swatch picker, choice) · 9 lists and tables
-   (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
-   13 empty state, pager, code/log · 14 motion.
+   slider, chips, pill checks, swatch picker, choice, approval) · 9 lists and
+   tables (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   13 empty state, pager, code/log, checklist · 14 motion.
 
    Every colour is a token, written once for both themes through
    light-dark(). An app sets <html data-theme="light|dark"> to override the
@@ -494,6 +494,27 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice .option[aria-pressed="true"]:disabled, .choice:disabled label.option:has(input:checked) { opacity: 1; }
 .choice .about { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--t-s); overflow-wrap: anywhere; }
 .choice .answered { margin: var(--s2) 0 0; color: var(--ask-text); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
+/* approval: a choice asking leave for one step that cannot be undone. A
+   fieldset.choice.approval: a mono .kind word before the legend's question,
+   ul.what with what will happen, details.preview folding the command or diff
+   in a pre, and in .options an Approve .btn.primary, a Deny… .btn.ghost.deny
+   (in err words) and an optional Edit… .btn.ghost. Deny and Edit open a
+   .reply row: a field, its button and a .hint. Answered, the fieldset is
+   disabled and the chosen button (aria-pressed) stays at full strength.
+   .reply serves any choice that is answered in words */
+.choice.approval > legend { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s1) var(--s2); }
+.choice.approval .kind { font: 600 var(--t-xs)/1.5 var(--mono); letter-spacing: .04em; color: var(--ask-text); }
+.choice.approval .what { clear: both; margin: 0; padding: var(--s1) 0 0 1.2em; color: var(--text-soft); font-size: var(--t-s); overflow-wrap: anywhere; }
+.choice .preview { clear: both; margin: var(--s2) 0 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); }
+.choice .preview > summary { padding-block: calc((var(--tap) - 1.5em) / 2); cursor: pointer; }
+.choice .preview > pre { margin: var(--s1) 0 0; max-height: 18rem; font-size: var(--t-xs); }
+.choice .deny, .choice .deny:hover { border-color: var(--err); color: var(--err-text); }
+.choice .options > .btn[aria-pressed="true"]:disabled { opacity: 1; }
+.choice .reply { clear: both; display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s2); }
+.choice .reply[hidden] { display: none; }
+.choice .reply .input { flex: 1 1 14rem; min-width: 0; }
+.choice .reply textarea.input { min-height: 4.5rem; }
+.choice .reply .hint { flex-basis: 100%; margin: 0; font-size: var(--t-xs); }
 
 
 /* ---------- 9. lists and tables ---------- */
@@ -677,6 +698,26 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .checklist .n.done { background: var(--ok); border-color: var(--ok); color: #fff; }
 .checklist .n.cur { border-color: var(--accent); color: var(--accent-text); }
 .checklist .sp { flex: 1; } .checklist .sp b { display: block; }
+/* checklist steps in their states: .n.done (✓ on --ok), .n.cur (accent rim,
+   its label in accent words on li.cur), .n.failed (! in err words on an err
+   wash), .n.skipped (dashed, li.skipped struck through) and a plain .n for one
+   still to do. li.head leads the list with a title and a .count; a .step-note
+   under a step's label says why. .compact tightens the rows for a chat bubble,
+   and details.superseded folds an earlier copy of a list to one line */
+.checklist li.head { justify-content: space-between; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s2); padding-top: 0; border-bottom-color: var(--line-strong); }
+.checklist .head > b { font-weight: 600; overflow-wrap: anywhere; }
+.checklist .head .count { color: var(--muted); font: var(--t-xs)/1.5 var(--mono); white-space: nowrap; }
+.checklist .n.failed { background: color-mix(in srgb, var(--err) 15%, transparent); border-color: var(--err); color: var(--err-text); }
+.checklist .n.skipped { border-style: dashed; }
+.checklist li.cur .sp > b { color: var(--accent-text); }
+.checklist li.skipped .sp { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line-strong); }
+.checklist .step-note { display: block; color: var(--muted); font-size: var(--t-xs); }
+.checklist.compact li { padding: var(--s1) 0; }
+.checklist.compact .sp { min-width: 0; overflow-wrap: anywhere; }
+details.superseded { padding: var(--s1) var(--s3); border: 1px dashed var(--line-strong); border-radius: var(--r-m); }
+details.superseded > summary { cursor: pointer; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
+details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; vertical-align: middle; }
+details.superseded > .checklist { margin-top: var(--s1); opacity: .7; }
 
 /* ---------- 14. motion ---------- */
 @media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp { transition: none; } a.tile:hover { transform: none; } }
@@ -895,6 +936,32 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
         <fieldset class="choice" disabled><legend>Run the import again now?</legend>
           <div class="options"><button type="button" class="btn option" aria-pressed="true">Yes, now</button><button type="button" class="btn option" aria-pressed="false">Tonight</button><button type="button" class="btn option" aria-pressed="false">No</button></div>
           <p class="answered">answered: Yes, now</p></fieldset>
+      </div>
+    </div>
+    <h2 class="section-h">Approval and a plan's checklist (an agent asks leave, then shows where it is)</h2>
+    <div class="grid-2" style="margin-bottom:var(--s4)">
+      <div style="display:grid;gap:var(--s4)">
+        <fieldset class="choice approval"><legend><span class="kind">APPROVAL</span> Delete last year's camera footage</legend>
+          <ul class="what"><li>Removes 312 clips (86 GB) from the network share</li><li>The share keeps no snapshots: this cannot be undone</li></ul>
+          <details class="preview"><summary>command</summary><pre>find /share/camera/2025 -name '*.mp4' -delete</pre></details>
+          <div class="options"><button type="button" class="btn primary">Approve</button><button type="button" class="btn ghost deny">Deny…</button><button type="button" class="btn ghost">Edit…</button></div>
+          <div class="reply"><input class="input" type="text" value="/share/camera/2025" aria-label="Folder"><button type="button" class="btn primary">Send edit</button><p class="hint">Edit changes the one value the agent named, here the folder. It is not an approval: the agent asks again with the change.</p></div></fieldset>
+        <fieldset class="choice approval" disabled><legend><span class="kind">APPROVAL</span> Send the invitation to 14 guests</legend>
+          <ul class="what"><li>Mails the invitation from the house address</li></ul>
+          <div class="options"><button type="button" class="btn primary" aria-pressed="false">Approve</button><button type="button" class="btn ghost deny" aria-pressed="true">Deny…</button></div>
+          <p class="answered">answered: Deny: wait until the date is fixed</p></fieldset>
+      </div>
+      <div class="card" style="display:grid;gap:var(--s3)">
+        <details class="superseded"><summary>checklist · superseded · <a class="btn link" href="#">see the latest, 09:40</a></summary>
+          <ol class="checklist compact"><li><span class="n done">✓</span><span class="sp"><b>Back up the old controller</b></span></li><li class="cur"><span class="n cur">2</span><span class="sp"><b>Move the sensors over</b></span></li><li><span class="n">3</span><span class="sp"><b>Pair the hall switches</b></span></li></ol></details>
+        <ol class="checklist compact">
+          <li class="head"><b>Move to the new hub</b><span class="count">2 of 5 done · 1 failed</span></li>
+          <li><span class="n done">✓</span><span class="sp"><b>Back up the old controller</b></span></li>
+          <li><span class="n done">✓</span><span class="sp"><b>Move the sensors over</b><span class="step-note">23 of 23 answer on the new hub</span></span></li>
+          <li><span class="n failed">!</span><span class="sp"><b>Pair the hall switches</b><span class="step-note">the second switch does not answer; trying again after a reset</span></span></li>
+          <li class="cur"><span class="n cur">4</span><span class="sp"><b>Rename the rooms</b></span></li>
+          <li class="skipped"><span class="n skipped">5</span><span class="sp"><b>Move the garden lights</b><span class="step-note">left on the old hub for now</span></span></li>
+        </ol>
       </div>
     </div>
     <div class="card" style="margin-bottom:var(--s4)"><div class="grid-table"><table><caption>Rooms this week</caption>

@@ -20,7 +20,7 @@ Add the crate as a git dependency, pinned to a tag:
 
 ```toml
 [dependencies]
-castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.6" }
+castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.7" }
 ```
 
 The repository is public, so the fetch needs no token in CI or a Docker build.

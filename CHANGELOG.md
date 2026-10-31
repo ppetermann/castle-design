@@ -3,6 +3,46 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.8
+
+### Added
+
+Everything here is opt-in: a page that uses none of the new classes looks as
+it did in 0.1.7.
+
+- The diff (`pre.diff`): a unified diff with one `span` per line, `.add` in
+  `--ok-text`, `.del` in `--err-text`, `.hunk` in `--accent-text` and `.meta`
+  muted. `.diffhead` names the change in one mono line (`.path`, `.plus` and
+  `.minus` counts, a link), and `details.diffblock` folds the `pre` under it
+  (18rem at most, its summary at least `--tap` high). An approval's preview of a
+  diff now needs no rules of its own.
+- Stats with a tone: `.stat.ok`, `.stat.warn` and `.stat.err` colour the
+  value in their `-text` token; `.stat.flat` is a cell on `--surface-2`
+  without glass, for a panel that is glass already; `.stats.inchat` fits a
+  strip into a chat bubble, two cells a row on a phone, with a `.caption`
+  spanning the row.
+- The wait (`.note.wait`): a note with an accent bar, a pulsing `.dot` and a
+  mono `.countdown` the page counts down; `.due` once the time has passed
+  mutes it and stops the dot. The pulse is `@keyframes castle-pulse`, off
+  under `prefers-reduced-motion`.
+- Link chips (`.chips.links`): each pill holds one `<a>` that fills it
+  (`--tap` high under a finger) with a mono `.glyph` for its kind;
+  `li.refused` is a link the app will not open, dashed, its `.host` in mono.
+- `.dialog .address`: a confirm about a link shows its whole address in a
+  mono line on `--bg-sunken`.
+- `.choice .reply` with a `textarea.input`: its button sits at the box's
+  foot, for an answer of several lines; the mockup draws one.
+- `tests/contrast.rs` holds a diff's line colours and the code words on
+  `--bg-sunken`, a wait's countdown and bar, and a toned stat on a flat cell
+  to AA in both themes.
+
+### Fixed
+
+- An approval's `.preview` summary is at least `--tap` high: its padding was
+  worked out from a font larger than its own, so it stood about 32px tall under
+  a 40px `--tap`. It is a flex row now, with its own ▸/▾ mark in place of the
+  browser's.
+
 ## 0.1.7
 
 ### Added

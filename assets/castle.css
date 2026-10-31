@@ -7,10 +7,11 @@
    Sections: 1 tokens (and the hue tokens) · 2 base · 3 backdrop · 4 shell
    (top bar, tabs, bottom bar, sidebar, home link, theme switch) · 5 surfaces
    (tile, card, panel, sheet, dialog) · 6 text pieces · 7 status (dot, badge,
-   note, toast, state card) · 8 controls (button, switch, inputs, segmented,
-   slider, chips, pill checks, swatch picker, choice, approval) · 9 lists and
-   tables (rows, data and grid tables, schedule, slot, time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
-   13 empty state, pager, code/log, checklist · 14 motion.
+   note, wait, toast, state card) · 8 controls (button, switch, inputs,
+   segmented, slider, chips, link chips, pill checks, swatch picker, choice,
+   approval) · 9 lists and tables (rows, data and grid tables, schedule, slot,
+   time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
+   13 empty state, pager, code/log, diff, checklist · 14 motion.
 
    Every colour is a token, written once for both themes through
    light-dark(); no rule outside a custom property names a colour, and there
@@ -324,6 +325,7 @@ dialog.dialog { margin: 20vh auto auto; }
 dialog.dialog::backdrop { background: var(--scrim); }
 .dialog h2 { margin: 0 0 var(--s2); }
 .dialog p { color: var(--text-soft); }
+.dialog .address { padding: var(--s2) var(--s3); border-radius: var(--r-s); background: var(--bg-sunken); color: var(--text); font: var(--t-s)/1.5 var(--mono); overflow-wrap: anywhere; }
 /* ---------- 6. text pieces ---------- */
 .section-h { display: flex; align-items: center; gap: var(--s2); margin: var(--s5) 0 var(--s2); font-size: var(--t-xs); font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .section-h::after { content: ""; flex: 1; height: 1px; background: var(--line); }
@@ -355,6 +357,15 @@ dialog.dialog::backdrop { background: var(--scrim); }
 .note .what { font-weight: 600; color: var(--text); }
 .note .why { flex: 1 1 20ch; min-width: 0; }
 .note.sticky { position: sticky; top: calc(var(--nav-h) + var(--s2)); z-index: 5; box-shadow: var(--shadow); }
+/* a wait: a note with a time it ends, counted down in the page. The .dot
+   pulses in the accent until the time; .due once it has passed (muted, the
+   dot still), and the .countdown says how long ago */
+.note.wait { margin: 0; border-left-color: var(--accent); }
+.note.wait .dot { background: var(--accent); animation: castle-pulse 1.6s ease-in-out infinite; }
+.note.wait .countdown { color: var(--accent-text); font: 600 var(--t-s)/1.5 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.note.wait.due { border-left-color: var(--muted); }
+.note.wait.due .dot { background: var(--muted); animation: none; }
+.note.wait.due .countdown { color: var(--muted); font-weight: 400; }
 .toast { position: fixed; left: 50%; bottom: calc(var(--s5) + var(--tabbar-pad, 0px)); z-index: 40; transform: translateX(-50%); max-width: min(92%, 35rem); padding: var(--s3) var(--s4);
   border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: var(--r-m); background: var(--glass-strong); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: var(--shadow-lg); font-size: var(--t-s); }
 .toast.ok { border-left-color: var(--ok); } .toast.err { border-left-color: var(--err); }
@@ -486,6 +497,17 @@ fieldset.group > legend { margin: 0 0 var(--s1); padding: 0; font-size: var(--t-
   .chips.scroll { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(var(--s4) * -1); padding-inline: var(--s4); }
   .chips.scroll > li { flex: none; }
 }
+/* link chips: places to go, each a pill holding its <a> (the whole pill is the
+   target) with a mono .glyph for its kind (PR, CI, a commit). li.refused is a
+   link that is not one (an address no app opens): the label and its .host in
+   mono, dashed, no anchor */
+.chips.links > li { padding: 0; }
+.chips.links > li > a { display: inline-flex; align-items: center; align-self: stretch; gap: var(--s2); min-height: 2rem; padding: 0 var(--s3); border-radius: var(--r-pill); color: var(--accent-text); font-weight: 500; text-decoration: none; overflow-wrap: anywhere; }
+.chips.links > li > a:hover { background: var(--hover); }
+.chips.links .glyph { color: var(--muted); font: 600 var(--t-xs)/1 var(--mono); }
+.chips.links > li.refused { padding: 0 var(--s3); border: 1px dashed var(--line-strong); background: none; color: var(--muted); overflow-wrap: anywhere; }
+.chips.links > li.refused .host { font: var(--t-xs)/1.5 var(--mono); }
+@media (pointer: coarse) { .chips.links > li > a { min-height: var(--tap); } }
 /* choice: a question put to a person, in the --ask colour. A fieldset, the
    prompt its legend; the options in .options as .btn.option buttons
    (aria-pressed) or as label.btn.option holding a hidden radio (one answer)
@@ -516,7 +538,10 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice.approval .kind { font: 600 var(--t-xs)/1.5 var(--mono); letter-spacing: .04em; color: var(--ask-text); }
 .choice.approval .what { clear: both; margin: 0; padding: var(--s1) 0 0 1.2em; color: var(--text-soft); font-size: var(--t-s); overflow-wrap: anywhere; }
 .choice .preview { clear: both; margin: var(--s2) 0 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); }
-.choice .preview > summary { padding-block: calc((var(--tap) - 1.5em) / 2); cursor: pointer; }
+.choice .preview > summary { display: flex; align-items: center; gap: var(--s1); min-height: var(--tap); cursor: pointer; list-style: none; }
+.choice .preview > summary::-webkit-details-marker { display: none; }
+.choice .preview > summary::before { content: "▸"; }
+.choice .preview[open] > summary::before { content: "▾"; }
 .choice .preview > pre { margin: var(--s1) 0 0; max-height: 18rem; font-size: var(--t-xs); }
 .choice .deny, .choice .deny:hover { border-color: var(--err); color: var(--err-text); }
 .choice .options > .btn[aria-pressed="true"]:disabled { opacity: 1; }
@@ -525,6 +550,8 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice .reply .input { flex: 1 1 14rem; min-width: 0; }
 .choice .reply textarea.input { min-height: 4.5rem; }
 .choice .reply .hint { flex-basis: 100%; margin: 0; font-size: var(--t-xs); }
+/* an answer in words of several lines: its button at the box's foot */
+.choice .reply:has(> textarea.input) > .btn { align-self: flex-end; }
 
 /* ---------- 9. lists and tables ---------- */
 /* rows: a name, a state and an action per line (lights' devices, rooms) */
@@ -656,6 +683,17 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .stat .label { font-size: var(--t-xs); color: var(--muted); }
 .stat .sub { font-size: var(--t-xs); color: var(--muted); }
 .stat.unavailable .value { color: var(--muted); font-weight: 500; }
+/* a tone colours the value in its words; the .sub says why */
+.stat.ok .value { color: var(--ok-text); }
+.stat.warn .value { color: var(--warn-text); }
+.stat.err .value { color: var(--err-text); }
+/* .flat: a stat inside a panel that is already glass (a chat bubble, a card) */
+.stat.flat { background: var(--surface-2); -webkit-backdrop-filter: none; backdrop-filter: none; }
+/* .inchat: a strip in a chat bubble, two cells a row on a phone; a .caption
+   spans the row under them */
+.stats.inchat { margin: 0; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: var(--s2); }
+.stats.inchat .stat { padding: var(--s2) var(--s3); }
+.stats .caption { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: var(--t-xs); }
 
 /* ---------- 11. touch pieces (lights) ---------- */
 .lamp-room { padding: var(--s3); }
@@ -689,7 +727,7 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .login .foot { font-size: var(--t-xs); color: var(--muted); margin: var(--s2) 0 0; }
 .login .home-link { align-self: center; }
 
-/* ---------- 13. empty state, pager, code ---------- */
+/* ---------- 13. empty state, pager, code, diff ---------- */
 .empty { display: grid; justify-items: center; gap: var(--s2); padding: var(--s6) var(--s4); border: 1px dashed var(--line-strong); border-radius: var(--r-m); color: var(--muted); text-align: center; }
 .empty svg.icon { width: 2rem; height: 2rem; }
 .empty p { margin: 0; max-width: 52ch; }
@@ -700,6 +738,26 @@ a.stat:hover { border-color: color-mix(in srgb, var(--accent) 45%, transparent);
 .pager .pages > [aria-current]:not([aria-current="false"]) { background: var(--accent-soft); color: var(--accent-text); font-weight: 600; }
 pre, .log { margin: 0 0 var(--s3); padding: var(--s3); border: 1px solid var(--line); border-radius: var(--r-s); background: var(--bg-sunken); color: var(--text); font: var(--t-s)/1.5 var(--mono); overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 .log .t { color: var(--muted); } .log .e { color: var(--err-text); } .log .k { color: var(--accent-text); }
+/* a diff: unified text in a pre.diff, one span per line: .add in ok words,
+   .del in err words, .hunk (@@) in accent words, .meta (---, +++, diff --git)
+   muted. .diffhead names the change in one mono line (the .path, the .plus and
+   .minus counts, a link); details.diffblock folds the pre under it */
+pre.diff { font-size: var(--t-xs); }
+pre.diff > span { display: block; }
+pre.diff .add { color: var(--ok-text); }
+pre.diff .del { color: var(--err-text); }
+pre.diff .hunk { color: var(--accent-text); }
+pre.diff .meta { color: var(--muted); }
+.diffhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s1) var(--s3); min-width: 0; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); }
+.diffhead .path { min-width: 0; color: var(--text); font-weight: 600; overflow-wrap: anywhere; }
+.diffhead .plus { color: var(--ok-text); }
+.diffhead .minus { color: var(--err-text); }
+.diffhead a { color: var(--accent-text); }
+details.diffblock > summary { display: flex; align-items: center; min-height: var(--tap); padding-block: var(--s1); cursor: pointer; list-style: none; }
+details.diffblock > summary::-webkit-details-marker { display: none; }
+details.diffblock > summary .diffhead::before { content: "▸"; color: var(--muted); }
+details.diffblock[open] > summary .diffhead::before { content: "▾"; }
+details.diffblock > pre { margin: var(--s1) 0 0; max-height: 18rem; }
 .checklist { list-style: none; margin: 0; padding: 0; }
 .checklist li { display: flex; gap: var(--s3); align-items: center; padding: var(--s2) 0; border-bottom: 1px solid var(--line); }
 .checklist li:last-child { border-bottom: 0; }
@@ -729,4 +787,5 @@ details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; 
 details.superseded > .checklist { margin-top: var(--s1); opacity: .7; }
 
 /* ---------- 14. motion ---------- */
-@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp { transition: none; } a.tile:hover { transform: none; } }
+@keyframes castle-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp { transition: none; } a.tile:hover { transform: none; } .note.wait .dot { animation: none; } }

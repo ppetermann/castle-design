@@ -3,6 +3,22 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.9
+
+### Added
+
+Everything here is opt-in: a page that uses none of the new classes looks as
+it did in 0.1.8.
+
+- The stepper (`ol.stepper`): a thing's steps on one line, a disc per step
+  with its name under it, joined by a hairline. A step is `.done` (filled in
+  `--text-soft`), `.here` (larger, in its tone: accent by default, `.ok`,
+  `.ask`, `.warn` or `.err`, its name bold) or still ahead (hollow), and the
+  stretch after a `.done` step — the covered ground up to the current one —
+  is darker. Say which step is current without the colour too: the app puts
+  `aria-current="step"` on the here step and names the state in the list's
+  accessible name. An agent's change or task in an app's chat (OpenUI).
+
 ## 0.1.8
 
 ### Added

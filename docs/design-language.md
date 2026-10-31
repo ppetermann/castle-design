@@ -83,7 +83,7 @@ URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }
 
 ### Status
 
-Two values each: the vivid one for dots and fills (3:1 against the page is
+Two values each: the vivid one for dots and fills (3:1 against a surface is
 enough for a shape), the `-text` one for words (4.5:1 on `--bg`, `--surface`,
 `--surface-2` and strong glass, and on its own badge wash; `tests/contrast.rs`
 checks every text token on every one of those grounds).
@@ -525,6 +525,17 @@ Each entry: what it is, how it is drawn, which app has it today.
   `details.superseded`: one dashed mono line saying so, with a `.btn.link`
   to the latest, and the old list faded inside. llm-proxy's Get started; an
   agent's plan in an app's chat (OpenUI).
+- **Stepper** (`ol.stepper`): a thing's steps on one line, a disc per step
+  with its name under it, joined by a hairline. A step is done (filled in
+  `--text-soft`), here (larger, in its tone — accent by default, `.ok`,
+  `.ask`, `.warn` or `.err`, its name bold) or still ahead (hollow), and the
+  stretch after a done step — the covered ground up to the current one — is
+  darker. The colour is never alone: the here disc is larger and its name
+  bold, and the app says which step is current without it, with
+  `aria-current="step"` on the here step and the state in the list's
+  accessible name, as the mockup draws it. A stepper sits on a card, like
+  the checklist, where every tone disc keeps its 3:1. An agent's change or
+  task in an app's chat (OpenUI).
 - **Login** (`.login`): one strong-glass card centred on the full castle: the
   app's mark (its home icon on a hue tile), its name, a sub line, the fields,
   one primary button, and the home link under it. Lights puts the passkey

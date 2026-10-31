@@ -1,6 +1,6 @@
 [package]
 name = "castle-design"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 rust-version = "1.88"
 description = "The castle's design system: the shared stylesheet, the castle picture and the theme cookie, as compile-time constants"

@@ -11,7 +11,7 @@
    segmented, slider, chips, link chips, pill checks, swatch picker, choice,
    approval) · 9 lists and tables (rows, data and grid tables, schedule, slot,
    time grid) · 10 stats · 11 touch pieces (lamp tile, dimmer strip) · 12 login ·
-   13 empty state, pager, code/log, diff, checklist · 14 motion.
+   13 empty state, pager, code/log, diff, checklist, stepper · 14 motion.
 
    Every colour is a token, written once for both themes through
    light-dark(); no rule outside a custom property names a colour, and there
@@ -785,6 +785,29 @@ details.superseded { padding: var(--s1) var(--s3); border: 1px dashed var(--line
 details.superseded > summary { cursor: pointer; color: var(--muted); font: var(--t-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
 details.superseded > summary .btn.link { min-height: var(--tap); font: inherit; vertical-align: middle; }
 details.superseded > .checklist { margin-top: var(--s1); opacity: .7; }
+
+/* stepper: a thing's steps on one line, a disc per step with its name under
+   it, joined by a hairline. Each li is .done (filled in --text-soft), .here
+   (larger, in the step's tone: accent by default, .ok, .ask, .warn, .err) or
+   plain (hollow, still ahead). The covered stretch before a .done step is
+   drawn darker; a long name wraps at its hyphen. The colour is never alone:
+   the .here disc is larger and its name bold. An agent's change or task in
+   an app's chat (OpenUI) */
+ol.stepper { --node: .5rem; --here: .75rem; --box: .9rem; display: flex; margin: var(--s2) 0 0; padding: 0; list-style: none; min-width: 0; }
+ol.stepper li { position: relative; flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .2rem; font-size: var(--t-xs); line-height: 1.25; text-align: center; color: var(--muted); }
+ol.stepper li + li::before { content: ""; position: absolute; top: calc(var(--box) / 2 - .75px); left: -50%; right: 50%; height: 1.5px; background: var(--line-strong); }
+ol.stepper li.done + li::before { background: var(--text-soft); }
+ol.stepper i { position: relative; z-index: 1; display: grid; place-items: center; width: var(--box); height: var(--box); }
+ol.stepper i::after { content: ""; box-sizing: border-box; width: var(--node); height: var(--node); border-radius: 50%; border: 1.5px solid var(--line-strong); background: var(--surface); }
+ol.stepper li.done i::after { border-color: var(--text-soft); background: var(--text-soft); }
+ol.stepper li.here { --step-tone: var(--accent); --step-text: var(--accent-text); color: var(--step-text); font-weight: 600; }
+ol.stepper li.here.ok { --step-tone: var(--ok); --step-text: var(--ok-text); }
+ol.stepper li.here.ask { --step-tone: var(--ask); --step-text: var(--ask-text); }
+ol.stepper li.here.warn { --step-tone: var(--warn); --step-text: var(--warn-text); }
+ol.stepper li.here.err { --step-tone: var(--err); --step-text: var(--err-text); }
+ol.stepper li.here i::after { width: var(--here); height: var(--here); border-color: var(--step-tone); background: var(--step-tone); box-shadow: 0 0 0 3px color-mix(in srgb, var(--step-tone) 22%, transparent); }
+ol.stepper li.here.err i::after { background: var(--surface); border-width: 3px; }
+ol.stepper span { max-width: 100%; overflow-wrap: break-word; hyphens: manual; }
 
 /* ---------- 14. motion ---------- */
 @keyframes castle-pulse { 50% { opacity: .35; } }

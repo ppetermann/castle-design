@@ -547,9 +547,7 @@ fieldset.choice > legend { float: left; width: 100%; margin: 0; padding: 0; font
 .choice .reply .input { flex: 1 1 14rem; min-width: 0; }
 .choice .reply textarea.input { min-height: 4.5rem; }
 .choice .reply .hint { flex-basis: 100%; margin: 0; font-size: var(--t-xs); }
-/* an answer in words of several lines: the box grows downwards, its button
-   at the box's foot */
-.choice .reply textarea.input { resize: vertical; }
+/* an answer in words of several lines: its button at the box's foot */
 .choice .reply:has(> textarea.input) > .btn { align-self: flex-end; }
 
 /* ---------- 9. lists and tables ---------- */

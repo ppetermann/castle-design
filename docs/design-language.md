@@ -404,7 +404,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   hollow; `li.plain` holds a trailing "show all" link. `.scroll` keeps them on
   one row you swipe on a phone instead of several stacked rows. The
   calendar's sources; image-desk's and vision-desk's tags.
-  **Link chips** (`.chips.links`): places to go, each pill holding one `<a>`
+- **Link chips** (`.chips.links`): places to go, each pill holding one `<a>`
   that fills it, with a mono `.glyph` for its kind (a change, a check run, a
   commit, a page) before a short label. A link the app will not open (not
   `https`) is `li.refused`: dashed and muted, the label and its address's

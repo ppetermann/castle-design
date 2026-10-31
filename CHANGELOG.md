@@ -30,8 +30,8 @@ it did in 0.1.7.
   `li.refused` is a link the app will not open, dashed, its `.host` in mono.
 - `.dialog .address`: a confirm about a link shows its whole address in a
   mono line on `--bg-sunken`.
-- `.choice .reply` with a `textarea.input`: the box resizes downwards and its
-  button sits at the box's foot.
+- `.choice .reply` with a `textarea.input`: its button sits at the box's
+  foot, for an answer of several lines; the mockup draws one.
 - `tests/contrast.rs` holds a diff's line colours and the code words on
   `--bg-sunken`, a wait's countdown and bar, and a toned stat on a flat cell
   to AA in both themes.

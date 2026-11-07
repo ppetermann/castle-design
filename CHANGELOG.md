@@ -3,6 +3,108 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## 0.1.10
+
+A sweep of the design review's small findings. Pages change in a few places
+without any markup change; they are listed first.
+
+### Changed
+
+- `--on-fill` is `#0b1020` in the dark theme (white stays in light): white on
+  the dark theme's pale `--err` and `--ok` reached only 2.8:1 and 2.3:1, so a
+  tab's count, a sidebar badge, a danger button and a done step's ✓ were
+  under AA there. It now works like `--accent-contrast`.
+- `--surface-2` is `#f5f7fa` in light (it was `#eef1f6`, the same as `--bg`):
+  a state card, a choice form, a chip or a switch's track placed straight on
+  the page showed no edge. It now sits between the page and a card, so it
+  shows on both.
+- A placeholder is `--muted` at full strength (it was faded to .8, 3.8:1 in
+  light).
+- Where the soft `--ring` was the only sign of focus (a pill check, a
+  swatch, a choice's option label, a segmented choice) a solid 2 px accent
+  ring takes its place, as everywhere else; a segmented control's buttons
+  and links get it inside their edge, since the box clips an outline. An
+  `.input` keeps `--ring` beside its accent border.
+- A lamp's state (`.lamp .status`) is no longer faded to .85: its ink is
+  picked for contrast against the lamp's own colour.
+- Under a coarse pointer an `.input`'s text is at least 16 px, so iOS no
+  longer zooms the page on focus in a dense app.
+- The ultra-wide rule reaches sidebar apps: `.with-sidenav main.page` grows
+  to `max(--page, 80vw)` plus the sidebar, as the design language says.
+- The base layer: `h4`–`h6`, `ul`, `ol`, `dl` and `blockquote` lose the
+  browser's margins for `--s3` under them, like `p` (`h4`–`h6` at `--t-s`
+  600); lists indent 1.25em; `hr` is a `--line` hairline; `blockquote` a
+  `--line-strong` bar; `summary` takes the pointer; a link's underline
+  thickens under the pointer.
+- Every small uppercase label is tracked `--track-caps` (.05em); they were
+  .04, .05 and .06em.
+- The tile and the lamp tile are on the spacing and type scale (`--s*`,
+  `--t-*`), so density reaches them; their sizes move by a pixel or two.
+- Every z-index of the shell and the overlays reads a `--z-*` token; the
+  values are unchanged.
+- Washes come in three named strengths, `--tint-faint` (6 %), `--tint-soft`
+  (15 %) and `--tint-strong` (22 %), plus `--tint-edge` (45 %) for a hover rim
+  and the focus ring; every wash moved to the nearest: today's column 5 → 6 %,
+  `--hue-soft` 10 → 6 %, `--accent-soft` 14 → 15 %, `--hue-wash` 16 → 15 %,
+  a dot's ring 20 → 22 %. A plain (muted) badge goes from 12 to 6 % rather
+  than 15 %, where its muted words would fall under 4.5:1 in light.
+- Titles are 700 where they were 650 (`h2`, `.tile .name`, `.metric .value`,
+  `.stat .value`, `.tg-head b`): 650 rendered semibold on a Mac and snapped to
+  bold on Windows and Linux, so they now read bold everywhere.
+
+### Added
+
+- `.scrim.above`: a confirm's scrim over a sheet and under the confirm, for
+  a confirm opened from a sheet (the plain scrim sits under the sheet).
+- A docked sheet makes room: on a desk the page pads its right side by
+  `--sheet-w` while a `.sheet.docked` is shown (not `hidden`), so the sheet
+  sits beside a week's last day instead of over it.
+- Status tones fill the grid: `.dot.info`, `.dot.ask`, `.badge.ask`,
+  `.note.info`, `.note.ask`, `.toast.warn`, `.toast.info`, `.toast.ask`, and
+  `--info-text` (the same value as `--info`) for words; `nav.tabs
+  .count.ask` and `.nav-badge.ask` count things waiting on a person apart
+  from failures.
+- Form states: `.input:disabled`, `.input[readonly]`,
+  `.input[aria-invalid="true"]` with a `.field .error` line, a `.field .req`
+  required mark, and `select.input`.
+- Progress and loading: `progress.progress` (determinate and
+  indeterminate), `.spinner`, `.htmx-indicator` and a progress cursor on
+  `[aria-busy="true"]`; `@keyframes castle-spin` and `castle-slide`.
+- Forced colours and print (section 15): high-contrast mode puts chosen
+  choices, pressed buttons, switches and focus rings back in system colours
+  and hides the castle; print uses the light theme on white without the
+  castle, glass, bars or sheets, the page at the paper's width, statuses and
+  hues in colour.
+- Tokens: `--sheet-w`, `--track-caps`, `--info-text`, the `--tint-*`
+  strengths and the `--z-*` stack.
+- `castle_design::icons`: `HOME`, `MONITOR`, `SUN` and `MOON`, the home
+  link's and the theme switch's icons as inline `svg.icon` strings (and as
+  files in `assets/icons/`), so every app's bar draws the same ones; the
+  link's and the switch's markup stay the app's own.
+- Tests: `tests/contrast.rs` holds `--on-fill` on every fill it is drawn on,
+  the placeholder in its field, every solid focus ring (and that `--ring`
+  never shows focus alone), the progress bar on its track, `--surface-2`
+  apart from the page and a card, and a lamp's unfaded state;
+  `tests/assets.rs` holds the stacking order, the ultra-wide sidebar page,
+  the docked sheet's room, the status tones, the uppercase tracking, the
+  tile and lamp type scale, the iOS input size, the form states, and that
+  every mockup rule lists the same selectors as castle.css's, that every
+  wash reads a `--tint-*` token, and that the crate's icons draw the
+  mockup's symbols.
+
+### Fixed
+
+- The mockup's `.input` rule no longer carries `.screen select.input` and
+  `.screen textarea.input`, which outranked `.input:focus` and kept a
+  focused select's border neutral. The mockup also takes `--on-fill`
+  instead of a literal white.
+- The design language: badges, table heads, field labels and sidebar heads
+  are 13 px (12 px dense), not 12 px; `--surface-2`'s uses; the touch table
+  names the theme switch and inputs; the touch debt list names every
+  undersized control (`.theme-switch` buttons, `.btn.link`, a plain chip's
+  remove button and a `.close` outside a sheet join `.btn.sm` and
+  `.icon-btn`); the chat-only components say they have no app yet.
+
 ## 0.1.9
 
 ### Added
@@ -63,8 +165,11 @@ it did in 0.1.7.
 
 ### Added
 
-Everything here is opt-in: a page that uses none of the new classes looks as
-it did in 0.1.6.
+Almost everything here is opt-in: a page that uses none of the new classes
+looks as it did in 0.1.6, with one exception: a chosen `.btn` with
+`aria-pressed="true"` in the `.options` of a disabled `fieldset.choice` no
+longer fades (it stays at full strength, as an answered choice's chosen
+option should).
 
 - The approval (`fieldset.choice.approval`): a choice that asks leave for one
   step that cannot be undone. A mono `.kind` word in `--ask-text` before the

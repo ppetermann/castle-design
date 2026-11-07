@@ -20,7 +20,7 @@ Add the crate as a git dependency, pinned to a tag:
 
 ```toml
 [dependencies]
-castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.8" }
+castle-design = { git = "https://github.com/ppetermann/castle-design", tag = "v0.1.10" }
 ```
 
 The repository is public, so the fetch needs no token in CI or a Docker build.
@@ -67,6 +67,21 @@ when `theme` is absent.
 The stylesheet does the rest: every colour is a `light-dark()` token, so
 `data-theme` on `<html>` flips the whole page. `data-density="dense"` on
 `<html>` switches to the smaller scale for the admin screens.
+
+### The shared icons
+
+The home link's house and the theme switch's monitor, sun and moon are the
+same in every app: `castle_design::icons::{HOME, MONITOR, SUN, MOON}` are
+whole inline `<svg class="icon" aria-hidden="true">` strings to drop into the
+app's own markup (the files are in `assets/icons/` too). The link and the
+switch themselves, and the labels they carry, stay the app's:
+
+```rust
+use castle_design::icons;
+
+let home = format!(r#"<a class="home-link" href="https://home.example.com/">{}<span>Home</span></a>"#, icons::HOME);
+let light = format!(r#"<button name="theme" value="light" aria-label="Light" aria-pressed="false">{}</button>"#, icons::SUN);
+```
 
 ## Pinning and updating
 

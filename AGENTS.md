@@ -12,13 +12,15 @@ the shared `theme` cookie helper. Apps pin it as a git dependency by tag
   or the mockup's example data.
 - **`docs/design-language.md` is the intent**; `assets/castle.css` implements
   it and `tests/assets.rs` enforces its hard rules (no
-  `prefers-color-scheme`, colours only inside custom property declarations,
+  `prefers-color-scheme`, colours only inside custom property declarations
+  (the one exception: forced-colours system colours, design-language §5),
   every `var()` declared or listed in `APP_TOKENS`). A new app-provided token
   goes in that list and in castle.css's header.
 - **`docs/mockup.html` carries its own frame-scoped copy** of the sheet
   (`.frame`/`.screen`, `@container` queries, embedded picture). A component
   change lands in `assets/castle.css` and, when it shows, in the mockup's copy
-  too.
+  too; `tests/assets.rs` fails when a mockup rule's selector list (frame
+  scoping aside) differs from castle.css's rule for the same selectors.
 - **Token and class names are a contract** with five apps: adding is free;
   renaming or removing is a breaking change (new minor while 0.x, noted in
   `CHANGELOG.md`).

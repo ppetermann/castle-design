@@ -484,3 +484,304 @@ fn state_card_states_colour_their_badge() {
         assert_eq!(toned.len(), 7, "{sheet}: {toned:?}");
     }
 }
+
+/// Every rule's selector list and body, innermost head only (a media
+/// query's own head sits before the rule's and is cut off at its brace).
+fn bodies(code: &str) -> Vec<(String, String)> {
+    code.split('}')
+        .filter_map(|rule| {
+            let (head, body) = rule.rsplit_once('{')?;
+            let head = head.rsplit_once('{').map_or(head, |(_, h)| h);
+            Some((head.trim().to_owned(), body.trim().to_owned()))
+        })
+        .collect()
+}
+
+/// The number a `--z-*` token is set to.
+fn z(code: &str, name: &str) -> i32 {
+    declarations(code)
+        .into_iter()
+        .find(|(n, _)| n == name)
+        .unwrap_or_else(|| panic!("{name} is not declared"))
+        .1
+        .parse()
+        .unwrap_or_else(|_| panic!("{name} is not a number"))
+}
+
+#[test]
+fn layers_stack_in_order() {
+    // a confirm opened from a sheet: its scrim (.scrim.above) must cover the
+    // sheet, and the confirm its scrim; the docked sheet stays under the bars
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let order = [
+            "--z-page",
+            "--z-docked",
+            "--z-bar",
+            "--z-menu",
+            "--z-scrim",
+            "--z-sheet",
+            "--z-toast",
+            "--z-dialog-scrim",
+            "--z-dialog",
+        ];
+        for pair in order.windows(2) {
+            assert!(
+                z(&code, pair[0]) < z(&code, pair[1]),
+                "{sheet}: {} is not under {}",
+                pair[0],
+                pair[1]
+            );
+        }
+        for (selector, token) in [
+            (".scrim", "--z-scrim"),
+            (".scrim.above", "--z-dialog-scrim"),
+            (".dialog:not(dialog)", "--z-dialog"),
+            (".sheet.docked", "--z-docked"),
+        ] {
+            let body = bodies(&code)
+                .into_iter()
+                .find(|(head, _)| head == selector)
+                .unwrap_or_else(|| panic!("{sheet}: no rule {selector}"))
+                .1;
+            assert!(
+                body.contains(&format!("z-index: var({token})")),
+                "{sheet}: {selector} is not on {token}"
+            );
+        }
+    }
+}
+
+#[test]
+fn a_sidebar_page_grows_on_an_ultra_wide_screen() {
+    // .with-sidenav main.page outranks main.page, so the ultra-wide rule must
+    // name it too or a sidebar app stays at its desk width
+    for (sheet, code, wide) in [
+        ("castle.css", css_code(), "@media (width >= 100rem)"),
+        (
+            "the mockup",
+            mockup_css(),
+            "@container frame (min-width: 100rem)",
+        ),
+    ] {
+        let grows = rules(&code).into_iter().any(|(media, selectors)| {
+            media.as_deref() == Some(wide)
+                && selectors.iter().any(|s| s == ".with-sidenav main.page")
+        });
+        assert!(
+            grows,
+            "{sheet}: no ultra-wide rule for .with-sidenav main.page"
+        );
+    }
+}
+
+#[test]
+fn a_docked_sheet_makes_room_beside_the_page() {
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let room = bodies(&code).into_iter().any(|(head, body)| {
+            head.contains(":has(.sheet.docked")
+                && head.ends_with("main.page")
+                && body.contains("padding-right: calc(var(--sheet-w)")
+        });
+        assert!(room, "{sheet}: nothing pads the page for a docked sheet");
+    }
+}
+
+#[test]
+fn every_status_piece_has_every_tone() {
+    // a dot, a badge, a note and a toast each in ok, warn, err, info and ask,
+    // and a count in err (the default) or ask
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let heads: Vec<String> = rules(&code)
+            .into_iter()
+            .flat_map(|(_, selectors)| selectors)
+            .collect();
+        for piece in [".dot", ".badge", ".note", ".toast"] {
+            for tone in ["ok", "warn", "err", "info", "ask"] {
+                let selector = format!("{piece}.{tone}");
+                assert!(heads.contains(&selector), "{sheet}: no {selector}");
+            }
+        }
+        for selector in ["nav.tabs .count.ask", ".nav-badge.ask"] {
+            assert!(
+                heads.iter().any(|h| h == selector),
+                "{sheet}: no {selector}"
+            );
+        }
+    }
+}
+
+#[test]
+fn small_uppercase_labels_share_one_tracking() {
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let off: Vec<String> = bodies(&code)
+            .into_iter()
+            .filter(|(_, body)| body.contains("text-transform: uppercase"))
+            .filter(|(_, body)| !body.contains("letter-spacing: var(--track-caps)"))
+            .map(|(head, _)| head)
+            .collect();
+        assert!(
+            off.is_empty(),
+            "{sheet}: uppercase labels off --track-caps: {off:?}"
+        );
+    }
+}
+
+#[test]
+fn tiles_and_lamps_are_on_the_type_scale() {
+    // density reaches a component only through the --t-* tokens
+    for (sheet, code) in [("castle.css", css_code()), ("the mockup", mockup_css())] {
+        let off: Vec<String> = bodies(&code)
+            .into_iter()
+            .filter(|(head, _)| {
+                [".tile", ".metric", ".lamp"]
+                    .iter()
+                    .any(|p| head.starts_with(p))
+            })
+            .filter(|(head, body)| {
+                head != ".lamp-tile:has(.lamp-dim) .lamp"
+                    && body
+                        .split(';')
+                        .any(|d| d.trim().starts_with("font-size:") && !d.contains("var(--t-"))
+            })
+            .map(|(head, _)| head)
+            .collect();
+        assert!(off.is_empty(), "{sheet}: font sizes off the scale: {off:?}");
+    }
+}
+
+#[test]
+fn inputs_do_not_make_ios_zoom() {
+    // iOS zooms the page on focus into a field whose text is under 16px
+    assert!(
+        css_code()
+            .contains("@media (pointer: coarse) { .input { font-size: max(1rem, var(--t-m)); } }")
+    );
+}
+
+#[test]
+fn form_states_are_drawn() {
+    let heads: Vec<String> = rules(&css_code())
+        .into_iter()
+        .flat_map(|(_, selectors)| selectors)
+        .collect();
+    for selector in [
+        ".input:disabled",
+        ".input[readonly]",
+        r#".input[aria-invalid="true"]"#,
+        ".field .error",
+        ".field .req",
+        "select.input",
+        "progress.progress",
+        ".spinner",
+        ".htmx-indicator",
+    ] {
+        assert!(heads.iter().any(|h| h == selector), "no {selector}");
+    }
+}
+
+/// A mockup selector list, with the frame scoping taken off, matches the
+/// list of a castle.css rule that holds any of its selectors: a selector the
+/// mockup adds to a shared rule (say `.screen select.input` beside
+/// `.input`) raises that rule's specificity above its own variants
+/// (`.input:focus`) and draws the mockup differently from the sheet.
+#[test]
+fn the_mockups_rules_list_the_sheets_selectors() {
+    fn unscoped(selector: &str) -> String {
+        let s = selector.split_whitespace().collect::<Vec<_>>().join(" ");
+        for scope in [":where(.screen) ", ".screen "] {
+            if let Some(rest) = s.strip_prefix(scope) {
+                return rest.to_owned();
+            }
+        }
+        s
+    }
+    fn lists(code: &str) -> Vec<Vec<String>> {
+        rules(code)
+            .into_iter()
+            .map(|(_, selectors)| {
+                let mut list: Vec<String> = selectors
+                    .iter()
+                    .map(|s| unscoped(s))
+                    .filter(|s| s != ".frame" && !s.is_empty())
+                    .collect();
+                list.sort();
+                list.dedup();
+                list
+            })
+            .collect()
+    }
+    let sheet = lists(&css_code());
+    let mut drift = Vec::new();
+    for list in lists(&mockup_css()) {
+        // the mockup writes some base element rules as :where(.screen) :is(…)
+        if list
+            .iter()
+            .any(|s| s.starts_with(":is(") || s.starts_with(":where("))
+        {
+            continue;
+        }
+        let partners: Vec<&Vec<String>> = sheet
+            .iter()
+            .filter(|l| list.iter().any(|s| l.contains(s)))
+            .collect();
+        if !partners.is_empty() && !partners.contains(&&list) {
+            drift.push(format!("{list:?} (castle.css: {:?})", partners[0]));
+        }
+    }
+    assert!(
+        drift.is_empty(),
+        "mockup rules that differ from castle.css's:\n{}",
+        drift.join("\n")
+    );
+}
+
+#[test]
+fn the_shared_icons_are_the_mockups() {
+    // each icon is a whole inline svg.icon, hidden from assistive technology,
+    // drawing the same shapes as the mockup's symbol, so the two never drift
+    let mockup = include_str!("../docs/mockup.html");
+    for (icon, symbol) in [
+        (castle_design::icons::HOME, "i-home"),
+        (castle_design::icons::MONITOR, "i-monitor"),
+        (castle_design::icons::SUN, "i-sun"),
+        (castle_design::icons::MOON, "i-moon"),
+    ] {
+        let open = r#"<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">"#;
+        let shapes = icon
+            .strip_prefix(open)
+            .and_then(|rest| rest.strip_suffix("</svg>"))
+            .unwrap_or_else(|| panic!("{symbol}: not a bare svg.icon: {icon}"));
+        let head = format!(r#"<symbol id="{symbol}" viewBox="0 0 24 24">"#);
+        let start = mockup.find(&head).expect("the mockup's symbol") + head.len();
+        let end = start + mockup[start..].find("</symbol>").unwrap();
+        assert_eq!(
+            shapes,
+            &mockup[start..end],
+            "{symbol} differs from the mockup"
+        );
+    }
+}
+
+#[test]
+fn every_wash_is_a_named_tint() {
+    // a colour mixed over its ground reads a --tint-* strength; the only
+    // literal percentages left are a lit lamp's glow, a danger card's rim and
+    // the quiet backdrop's wash, which are not tints of a status or the accent
+    let code = css_code();
+    let mut literal = Vec::new();
+    for (i, _) in code.match_indices("color-mix(in srgb, var(") {
+        let rest = &code[i..];
+        let arg = rest[rest.find(") ").unwrap() + 2..]
+            .split(',')
+            .next()
+            .unwrap();
+        if arg.ends_with('%') && !["35%", "50%", "55%", "60%"].contains(&arg) {
+            literal.push(rest[..rest.find(';').unwrap()].to_owned());
+        }
+    }
+    assert!(
+        literal.is_empty(),
+        "washes off the tint scale:\n{}",
+        literal.join("\n")
+    );
+}

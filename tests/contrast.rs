@@ -587,6 +587,68 @@ fn words_on_a_vivid_fill_meet_aa() {
 }
 
 #[test]
+fn the_current_page_and_the_mood_ring_keep_their_contrast_on_the_fallbacks() {
+    // Pairs drawn on a `var(app-token, fallback)` paint, checked on the
+    // fallback an app gets when it sets none of the tokens: the current
+    // page's words (4.5:1) and icon (3:1) on its wash, its bar (3:1) on each
+    // ground the sidebar can sit on, and the avatar's mood ring (3:1) against
+    // the --surface gap that rings it, in every size.
+    let mut check = Check(Vec::new());
+    let current = ".nav-link[aria-current=\"page\"]";
+    let wash = rule_value(current, "background");
+    let words = rule_value(current, "color");
+    let icon = rule_value(&format!("{current} svg.icon"), "color");
+    let bar = rule_value(&format!("{current}::before"), "background");
+    let rings: Vec<(&str, String)> = [".avatar", ".avatar.lg", ".avatar.sm"]
+        .into_iter()
+        .map(|rule| {
+            let shadow = rule_value(rule, "box-shadow");
+            let (gap, ring) = shadow.split_once(", ").expect("a gap and a ring");
+            assert!(gap.ends_with("var(--surface)"), "{rule}'s gap is {gap}");
+            let ring = &ring[ring.find("var(").expect("a ring colour")..];
+            (rule, ring.to_owned())
+        })
+        .collect();
+    for theme in THEMES {
+        for (ground, bg) in grounds(theme) {
+            let fill = eval(&wash, theme, 0.0).over(bg);
+            check.pair(
+                &format!("the current page's words on its wash over {ground}"),
+                theme,
+                eval(&words, theme, 0.0),
+                fill,
+                AA_TEXT,
+            );
+            check.pair(
+                &format!("the current page's icon on its wash over {ground}"),
+                theme,
+                eval(&icon, theme, 0.0),
+                fill,
+                AA_LARGE_OR_LINE,
+            );
+            check.pair(
+                &format!("the current page's bar on {ground}"),
+                theme,
+                eval(&bar, theme, 0.0),
+                bg,
+                AA_LARGE_OR_LINE,
+            );
+        }
+        let surface = eval("var(--surface)", theme, 0.0);
+        for (rule, ring) in &rings {
+            check.pair(
+                &format!("{rule}'s mood ring on its --surface gap"),
+                theme,
+                eval(ring, theme, 0.0),
+                surface,
+                AA_LARGE_OR_LINE,
+            );
+        }
+    }
+    check.done();
+}
+
+#[test]
 fn a_placeholder_meets_aa_in_its_field() {
     // a placeholder is words: its colour at its opacity, on the input's own
     // surface and on a read-only one

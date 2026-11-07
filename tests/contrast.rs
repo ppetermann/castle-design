@@ -209,7 +209,7 @@ fn text_tokens_meet_aa_on_every_surface() {
             "--ok-text",
             "--warn-text",
             "--err-text",
-            "--info",
+            "--info-text",
             "--ask-text",
         ] {
             let fg = eval(&format!("var({text})"), theme, 0.0);
@@ -222,7 +222,7 @@ fn text_tokens_meet_aa_on_every_surface() {
             ("--ok-text", "--ok", 15),
             ("--warn-text", "--warn", 15),
             ("--err-text", "--err", 15),
-            ("--info", "--info", 15),
+            ("--info-text", "--info", 15),
             ("--muted", "--muted", 12),
             // a .state-card's badge: its tone's words on a 15 % wash of the tone
             ("--accent-text", "--accent", 15),
@@ -489,4 +489,193 @@ fn the_contrast_check_catches_a_failing_pair() {
         60.0,
     );
     assert!(contrast(old, white) < AA_TEXT);
+}
+
+/// A declaration's value in the first rule whose selector is `selector`, if
+/// the rule sets it.
+fn rule_value_opt(selector: &str, property: &str) -> Option<String> {
+    let head = format!("\n{selector} {{");
+    let start = CSS.find(&head)? + head.len();
+    let body = &CSS[start..start + CSS[start..].find('}')?];
+    body.split(';')
+        .filter_map(|d| d.split_once(':'))
+        .find(|(name, _)| name.trim() == property)
+        .map(|(_, value)| value.trim().to_owned())
+}
+
+#[test]
+fn words_on_a_vivid_fill_meet_aa() {
+    // --on-fill on each fill it is drawn on, read from the rules: a count and
+    // a danger button are words (4.5:1); a done step's ✓ is a mark (3:1)
+    let mut check = Check(Vec::new());
+    let count_ink = rule_value("nav.tabs .count", "color");
+    let badge_ink = rule_value(".nav-badge", "color");
+    for theme in THEMES {
+        for (what, ink, fill, floor) in [
+            (
+                "a tab's count",
+                &count_ink,
+                rule_value("nav.tabs .count", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a tab's .ask count",
+                &count_ink,
+                rule_value("nav.tabs .count.ask", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a sidebar badge",
+                &badge_ink,
+                rule_value(".nav-badge", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a sidebar .ask badge",
+                &badge_ink,
+                rule_value(".nav-badge.ask", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a danger button",
+                &rule_value(".btn.danger", "color"),
+                rule_value(".btn.danger", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a done step's mark",
+                &rule_value(".checklist .n.done", "color"),
+                rule_value(".checklist .n.done", "background"),
+                AA_LARGE_OR_LINE,
+            ),
+        ] {
+            let fill = eval(&fill, theme, 0.0);
+            check.pair(what, theme, eval(ink, theme, 0.0), fill, floor);
+        }
+    }
+    check.done();
+}
+
+#[test]
+fn a_placeholder_meets_aa_in_its_field() {
+    // a placeholder is words: its colour at its opacity, on the input's own
+    // surface and on a read-only one
+    let mut check = Check(Vec::new());
+    let rule = ".input::placeholder";
+    let colour = rule_value(rule, "color");
+    let opacity: f64 = rule_value_opt(rule, "opacity").map_or(1.0, |o| o.parse().unwrap());
+    for theme in THEMES {
+        let mut fg = eval(&colour, theme, 0.0);
+        fg.3 *= opacity;
+        for field in [
+            rule_value(".input", "background"),
+            rule_value(".input[readonly]", "background"),
+        ] {
+            let bg = eval(&field, theme, 0.0);
+            check.pair(&format!("a placeholder on {field}"), theme, fg, bg, AA_TEXT);
+        }
+    }
+    check.done();
+}
+
+#[test]
+fn a_focus_ring_meets_3_to_1() {
+    // where the ring is the only sign of focus it is a solid accent line
+    // (3:1 on every ground, and on a chosen choice's accent wash); the soft
+    // --ring is kept for a field whose border also turns accent
+    let mut check = Check(Vec::new());
+    for rule in [
+        ":focus-visible",
+        ".check.pill:has(input:focus-visible)",
+        ".swatches label:has(input:focus-visible)",
+        ".choice label.option:has(input:focus-visible)",
+    ] {
+        let outline = rule_value(rule, "outline");
+        let colour = outline.split_whitespace().last().unwrap().to_owned();
+        let shadow = rule_value(
+            ".segmented > label:has(input:focus-visible), .segmented > :focus-visible",
+            "box-shadow",
+        );
+        let inset = shadow.split_whitespace().last().unwrap().to_owned();
+        for theme in THEMES {
+            for (ground, bg) in grounds(theme) {
+                let soft = eval("var(--accent-soft)", theme, 0.0).over(bg);
+                for (what, ink) in [(rule, &colour), ("a segmented choice's ring", &inset)] {
+                    let fg = eval(ink, theme, 0.0);
+                    check.pair(
+                        &format!("{what} on {ground}"),
+                        theme,
+                        fg,
+                        bg,
+                        AA_LARGE_OR_LINE,
+                    );
+                    check.pair(
+                        &format!("{what} on --accent-soft over {ground}"),
+                        theme,
+                        fg,
+                        soft,
+                        AA_LARGE_OR_LINE,
+                    );
+                }
+            }
+        }
+    }
+    check.done();
+    for rule in CSS.split('}') {
+        let Some((head, body)) = rule.rsplit_once('{') else {
+            continue;
+        };
+        if body.contains("var(--ring)") {
+            assert!(
+                body.contains("border-color: var(--accent)"),
+                "{} shows focus by --ring alone, which is under 3:1",
+                head.trim()
+            );
+        }
+    }
+}
+
+#[test]
+fn a_progress_bar_shows_on_its_track() {
+    let mut check = Check(Vec::new());
+    let track = rule_value("progress.progress", "background");
+    let bar = rule_value("progress.progress::-moz-progress-bar", "background");
+    assert_eq!(
+        bar,
+        rule_value("progress.progress::-webkit-progress-value", "background")
+    );
+    for theme in THEMES {
+        for (ground, bg) in grounds(theme) {
+            let track = eval(&track, theme, 0.0).over(bg);
+            let what = format!("a progress bar on its track over {ground}");
+            check.pair(
+                &what,
+                theme,
+                eval(&bar, theme, 0.0),
+                track,
+                AA_LARGE_OR_LINE,
+            );
+        }
+    }
+    check.done();
+}
+
+#[test]
+fn the_second_surface_stands_apart() {
+    // a state card, a choice form or a chip on --surface-2 must show both on
+    // the page and on a solid card
+    for theme in THEMES {
+        let s2 = eval("var(--surface-2)", theme, 0.0);
+        for ground in ["--bg", "--surface"] {
+            let ratio = contrast(s2, eval(&format!("var({ground})"), theme, 0.0));
+            assert!(ratio >= 1.04, "--surface-2 is lost on {ground}: {ratio:.3}");
+        }
+    }
+}
+
+#[test]
+fn a_lamps_state_keeps_its_picked_ink() {
+    // a lit lamp's ink is chosen for contrast against the lamp's own colour,
+    // so nothing may fade it
+    assert_eq!(rule_value_opt(".lamp .status", "opacity"), None);
 }

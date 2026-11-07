@@ -37,16 +37,20 @@ lives and how apps pick up changes · 10 what each app changes.
 6. **No literal colours outside the tokens.** An app's stylesheet reads
    `var(--…)`. `castle.css` is held to this by its tests (a colour appears
    only in a custom property's declaration); each app should test its own
-   sheet the same way.
+   sheet the same way. The one exception is forced colours (section 5),
+   where the sheet names the user's own system colours (`Highlight`,
+   `HighlightText`), never one of ours.
 
 ## 2. Tokens
 
 The shared file declares these on `:root`. Colours are written once for both
 themes with `light-dark()`; the theme is chosen by `color-scheme` (section 3).
-Besides the tables below it declares `--on-fill` (white text on a vivid status
-fill: a count, a danger button, a done step), `--art-fade` (the mask that fades
-the castle in) and `--castle`, which is `none` until the app points it at the
-URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }`.
+Besides the tables below it declares `--on-fill` (the words on a vivid status
+fill: a count, a danger button, a done step; white in light, `#0b1020` in dark,
+where the fills are pale, as `--accent-contrast` is on the accent),
+`--art-fade` (the mask that fades the castle in) and `--castle`, which is
+`none` until the app points it at the URL it serves the picture from:
+`:root { --castle: url("/static/castle.webp"); }`.
 
 ### Surfaces
 
@@ -55,7 +59,7 @@ URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }
 | `--bg` | `#eef1f6` | `#0c0f15` | the page under the picture |
 | `--bg-sunken` | `#e4e8ef` | `#07090d` | code, logs, a recessed well |
 | `--surface` | `#ffffff` | `#161a22` | inputs, opaque cards, a table's home |
-| `--surface-2` | `#eef1f6` | `#1e232d` | a row icon's disc, a hover on a solid card |
+| `--surface-2` | `#f5f7fa` | `#1e232d` | a second surface: a state card, a choice form, a chip, a switch's track, a flat stat, a read-only input, a row icon's disc, a hover on a button; lighter than the page and darker than a card in light, so it shows on both |
 | `--glass` | `rgb(228 233 240 / .46)` | `rgb(20 24 32 / .46)` | tiles (with `backdrop-filter: blur(2px)`) |
 | `--glass-strong` | `rgb(248 250 252 / .8)` | `rgb(32 37 49 / .8)` | panels, bars, menus, sheets (blur 12 px) |
 | `--line` | `rgb(20 30 50 / .1)` | `rgb(255 255 255 / .08)` | borders on glass |
@@ -79,7 +83,7 @@ URL it serves the picture from: `:root { --castle: url("/static/castle.webp"); }
 | `--accent-text` | `#2450b0` | `#9dbbff` | links and accent words (AA on both backgrounds) |
 | `--accent-contrast` | `#ffffff` | `#0b1020` | text on `--accent` |
 | `--accent-soft` | `color-mix(accent 14 %)` | same | a selected row, a current sidebar item |
-| `--ring` | `0 0 0 3px color-mix(accent 45 %)` | same | focus on inputs |
+| `--ring` | `0 0 0 3px color-mix(accent 45 %)` | same | focus on an input, whose border turns accent too (the ring alone is under 3:1, so a control whose only sign of focus is a ring draws a solid 2 px accent one) |
 
 ### Status
 
@@ -93,7 +97,7 @@ checks every text token on every one of those grounds).
 | `--ok` / `--ok-text` | `#16a34a` / `#137236` | `#22c55e` / `#4ade80` |
 | `--warn` / `--warn-text` | `#ea580c` / `#9e4908` | `#fb923c` / `#fdba74` |
 | `--err` / `--err-text` | `#dc2626` / `#b91c1c` | `#f87171` / `#fca5a5` |
-| `--info` | `#1c549b` | `#86b6ef` |
+| `--info` / `--info-text` | `#1c549b` / the same | `#86b6ef` / the same |
 | `--ask` / `--ask-text` | `#6b4fb3` / `#573ba1` | `#b3a2ea` / `#c4b6f0` |
 
 `--ask` is a question waiting for a person: the bar of a choice form and of a
@@ -157,9 +161,18 @@ wash laid over the castle; it replaces home's two non-colour tokens
   (home's title and a page's h1). Line height 1.5; headings 1.25. Weights:
   body 400, labels 600, titles 650–700. Numbers in tables and stats use
   `font-variant-numeric: tabular-nums`.
+- Tracking: every small uppercase label (a section head, a sidebar head, a
+  table head, a schedule's day, the time grid's head, a lamp's state, an
+  approval's kind word) is spaced `--track-caps` (.05em).
 - Controls: `--tap 2.5rem` with a mouse, `2.75rem` (44 px) on a coarse
   pointer, in every density. `--nav-h 3.25rem` top bar, `--tabbar 3.5rem`
-  bottom bar plus the safe-area inset. `--page 72rem` content width.
+  bottom bar plus the safe-area inset. `--page 72rem` content width,
+  `--sheet-w 27.5rem` a sheet.
+- Stacking: `--z-page` 1, `--z-docked` 9 (a docked sheet, under the bars),
+  `--z-bar` 10, `--z-menu` 20 (menus, popovers), `--z-scrim` 25, `--z-sheet`
+  30, `--z-toast` 40, `--z-dialog-scrim` 50 (`.scrim.above`), `--z-dialog`
+  60. A confirm opened from a sheet puts its scrim on `.scrim.above`, so it
+  covers the sheet.
 
 ### App tokens
 
@@ -239,8 +252,9 @@ a phone still gets 44 px targets.
 
 - **Breakpoints** (shared): phone `< 48rem` (bottom bar, stacked tables, one
   column), narrow `< 56rem` (a sidebar becomes a drawer), ultra-wide
-  `>= 100rem` (the page grows to `max(--page, 80vw)` and tile grids use a
-  20rem minimum: 4 columns at 1920 px, 6 at 2560 px).
+  `>= 100rem` (the page grows to `max(--page, 80vw)`, plus the sidebar in a
+  sidebar app, and tile grids use a 20rem minimum: 4 columns at 1920 px, 6
+  at 2560 px).
 - **Override after base**: a breakpoint's override of a selector comes after
   that selector's base rule, never before, since at equal specificity the
   later rule wins (`tests/assets.rs` checks the sheet and the mockup's copy).
@@ -263,8 +277,24 @@ a phone still gets 44 px targets.
 - **Motion**: 0.2 s on hover lifts and 0.15 s on switches, and a wait's dot
   pulsing (`castle-pulse`, 1.6 s); everything off under
   `prefers-reduced-motion`.
-- **Focus**: 2 px accent outline, offset 2 px, on every focusable thing;
-  inputs use `--ring` instead.
+- **Focus**: 2 px accent outline, offset 2 px, on every focusable thing,
+  and on the label of a hidden input (a pill check, a swatch, a choice);
+  inside a segmented control, which clips an outline, a 2 px accent ring
+  inside the choice's edge. Inputs use `--ring` with an accent border.
+- **Base**: headings `h1`–`h6`, `p`, lists, `dl` and `blockquote` have no
+  browser margins, only `--s3` under them; lists indent 1.25em; `hr` is a
+  `--line` hairline; `blockquote` a `--line-strong` bar in `--text-soft`;
+  `summary` takes the pointer. A link is `--accent-text`, visited or not,
+  its underline thicker under the pointer.
+- **Forced colours** (Windows high contrast): the browser paints surfaces and
+  borders itself, so the glass and its hairlines hold up; the sheet puts back
+  in system colours what was drawn only in a fill or a shadow (a chosen
+  choice, a pressed button, a switch that is on, focus rings), lets dots,
+  swatches, slots, the now line, a lit lamp and a progress bar keep their
+  colours, and hides the castle.
+- **Print**: the light theme on white, no castle, glass, shadow, bars,
+  sheets, toasts or spinners, the page at the paper's width and the time
+  grid and tables unclipped; a hue, a status or a bar prints in colour.
 
 ## 6. Components
 
@@ -278,11 +308,13 @@ Each entry: what it is, how it is drawn, which app has it today.
   "llm-proxy"), 700, after the home link. (Lights shows "z2m-mcp" today;
   showing the card's name ties the two pages together. Behaviour unchanged.)
 - **Tabs** (`nav.tabs`): muted text, accent underline for the current one;
-  a red count pill for things waiting. Phone: bottom bar as above. Lights and
-  llm-proxy.
-- **Sidebar** (`.sidenav`): sections with uppercase 12 px headings, items with
-  an icon and label, the current one on `--brand-soft` with a 3 px brand bar.
-  maia only.
+  a `.count` pill: red (`--err`) for things that went wrong, `.count.ask`
+  (violet) for things waiting on a person. Phone: bottom bar as above.
+  Lights and llm-proxy.
+- **Sidebar** (`.sidenav`): sections with uppercase 13 px headings (12 px
+  dense), items with an icon and label, the current one on `--brand-soft`
+  with a 3 px brand bar; a `.nav-badge` count, `.nav-badge.ask` for things
+  waiting. maia only.
 - **Theme switch** (`.theme-switch`): section 3.
 - **Bar buttons**: `.icon-btn` (round, glass, for the settings gear and the
   menu), `.pill-btn` (text in a glass pill, for home's Edit and llm-proxy's
@@ -312,25 +344,29 @@ Each entry: what it is, how it is drawn, which app has it today.
   flattens the page's own `.card`. **Docked** (`.sheet.docked`): beside a
   page that stays live (the calendar's editor next to its week, which
   refreshes behind it): no scrim, `aria-modal="false"`, under the top bar and
-  above the bottom bar, so the bar's controls stay in reach. llm-proxy's
+  above the bottom bar, so the bar's controls stay in reach; on a desk the
+  page pads its right side by the sheet's width while one is shown (not
+  `hidden`), so the sheet sits beside the page's last column. llm-proxy's
   panels; the calendar's editor, docked; maia's detail rows could use it.
 - **Dialog** (`.card.dialog`): a confirm, 26rem, centred near the top (20 vh)
   on a scrim: a title, one sentence, the buttons. A native `<dialog
   class="card dialog">` takes `--scrim` on its `::backdrop`; a scripted one is
-  a fixed `.card.dialog` over a `.scrim`. llm-proxy's and the calendar's
+  a fixed `.card.dialog` over a `.scrim`, a `.scrim.above` when it opens
+  from a sheet. llm-proxy's and the calendar's
   confirms. A confirm about an address (a link that leaves the hosts an app
   trusts) shows it whole in a `.address` line, mono on `--bg-sunken`, so
   the person reads where it goes before Open.
 - **Status dot** (`.dot`): .7rem with a 4 px wash ring; `.sm` .5rem for a
-  summary line. States ok / warn / err / unknown (muted). Home's card dots and
+  summary line. States ok / warn / err / info / ask / unknown (muted). Home's card dots and
   header dot; lights' "not seen yet"; maia's chip dots; llm-proxy's pills.
-- **Badge** (`.badge`): 12 px 600 in a pill with a 15 % wash; ok / warn / err
-  / info / accent / muted; `.outline` for a count; `.hue` in the element's
+- **Badge** (`.badge`): 13 px (12 px dense) 600 in a pill with a 15 % wash;
+  ok / warn / err / info / ask / accent / muted; `.outline` for a count; `.hue` in the element's
   own hue (`--hue-text` on a wash of `--hue-ink`). One component for lights'
   badges, maia's chips and llm-proxy's pills. maia's `.chip` keeps working as
   an alias (its plugin contract names it).
 - **Note** (`.note`): a strong-glass line with a 4 px coloured left bar: what
-  happened and why, an optional action. Transient outcomes (lights' flash,
+  happened and why, an optional action; ok / warn / err / info / ask, muted
+  without one. Transient outcomes (lights' flash,
   `.sticky` to stay in view while the page scrolls) and standing warnings
   (maia's attention rows, llm-proxy's errors) alike.
 - **Wait** (`.note.wait`): a note for a wait with a known end (a poll's next
@@ -339,9 +375,10 @@ Each entry: what it is, how it is drawn, which app has it today.
   `.countdown` the page counts from an absolute time ("next check in 3:52").
   Once the time has passed it is `.due`: bar and dot muted, the dot still,
   the countdown saying how long ago ("was due 09:30 · 2 min ago"), never a
-  negative count. An agent's wait in an app's chat (OpenUI).
+  negative count. No app has it yet; an agent's chat (OpenUI) is the first candidate.
 - **Toast** (`.toast`): a note that floats bottom-centre over the page for a
-  few seconds, above the bottom bar on a phone. maia's and llm-proxy's toasts
+  few seconds, above the bottom bar on a phone; its bar in a tone (ok / warn
+  / err / info / ask), accent without one. maia's and llm-proxy's toasts
   (llm-proxy's moves from bottom-right).
 - **State card** (`article.state-card`): one thing's state (a job, a task, a
   run) in a few lines, on `--surface-2` with a 4 px bar in the state's
@@ -352,8 +389,8 @@ Each entry: what it is, how it is drawn, which app has it today.
   `working` and `waiting` in `--accent`, `needs-decision` in `--ask`,
   `blocked` and `failed` in `--err`; any other state is muted with a plain
   badge. The badge always says the word, so the state is never colour
-  alone. An app's chat draws one for an agent's status block (OpenUI); a
-  dashboard's job list could use it.
+  alone. No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's status block; a dashboard's job list could
+  use it.
 - **Buttons** (`.btn`): neutral (surface, strong line), `.primary` (accent),
   `.danger` (err), `.ghost` (transparent), `.link`, `.sm`, `.round`.
   `--tap` high, 6 px radius, 600. Neutral unless it is the one thing the form
@@ -375,8 +412,16 @@ Each entry: what it is, how it is drawn, which app has it today.
   maia's theme radios, llm-proxy's filter row, the calendar's ‹ Today › and
   its repeat choices.
 - **Inputs** (`.input`, `.field`): opaque surface, strong-line border, 6 px
-  radius, `--tap` high; label above in 12–13 px 600 muted, hint below; focus
-  ring. `.fields` wraps them in a row; `.actions` holds the buttons.
+  radius, `--tap` high; label above in 13 px (12 px dense) 600 muted, hint
+  below; focus ring. A `select.input` keeps the browser's arrow. States:
+  `:disabled` sunken, dashed and muted; `[readonly]` on `--surface-2`;
+  `aria-invalid="true"` rims it in `--err` (an err ring on focus), with a
+  `.error` line under it saying what is wrong in words; a required field
+  marks its label with a `.req` (an `aria-hidden` "*", the input carries
+  `required`). The placeholder is `--muted` at full strength (4.5:1). Under
+  a coarse pointer an input's text is at least 16 px, so iOS does not zoom
+  the page on focus. `.fields` wraps them in a row; `.actions` holds the
+  buttons.
   `fieldset.group` holds a set of them under a `legend` drawn as a field
   label, with no box.
 - **Pill checks** (`.pills` of `.check.pill`): a few booleans as pills, the
@@ -408,7 +453,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   that fills it, with a mono `.glyph` for its kind (a change, a check run, a
   commit, a page) before a short label. A link the app will not open (not
   `https`) is `li.refused`: dashed and muted, the label and its address's
-  `.host` in mono, no anchor. An agent's links in an app's chat (OpenUI).
+  `.host` in mono, no anchor. No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's links.
 - **Choice** (`fieldset.choice`): a question put to a person, answered in
   one tap or with several picks and a submit. The prompt is the `legend`;
   `.options` holds the options as `.btn.option`s and, for several picks, a
@@ -421,7 +466,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   pressed (an accent rim on `--accent-soft`). Long labels wrap. Answered, the
   fieldset is `disabled`: the other options fade, the chosen ones stay at
   full strength. A 4 px `--ask` bar on `--surface-2` marks it as a question.
-  An app's chat draws one for an agent's question (OpenUI).
+  No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's question.
 - **Approval** (`fieldset.choice.approval`): a choice that asks leave for one
   step that cannot be undone or that leaves the house (a merge, a send, a
   delete). The legend opens with a mono `.kind` word (`APPROVAL`, in
@@ -437,11 +482,11 @@ Each entry: what it is, how it is drawn, which app has it today.
   `disabled`: the chosen button carries `aria-pressed="true"` and stays at
   full strength, the others fade, and `p.answered` says what was sent. An
   approval decides nothing by itself: the answer is words to whoever asked.
-  No app has it yet; it is an agent's ask in an app's chat (OpenUI).
+  No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's ask.
 - **Rows** (`ul.rows`): icon disc, title and facts, state, action; one line on
   a desk, two on a phone. Lights' devices and rooms; llm-proxy's recent list.
 - **Table** (`table.data` in a `.card.solid`, inside `.table-wrap`): heads
-  uppercase 12 px muted, numbers right and tabular, hover wash, selected row
+  uppercase 13 px (12 px dense) muted, numbers right and tabular, hover wash, selected row
   on `--accent-soft`. `.stack` turns each row into a card on a phone
   (`td.lead` title, `td.trail` beside it, `data-label` names a fact, `.end`
   the buttons); maia's `.stack` and llm-proxy's `data-label` tables both map
@@ -455,19 +500,20 @@ Each entry: what it is, how it is drawn, which app has it today.
   wide as its cells: heads stay on one line and a cell wraps only past
   20rem, and the `.grid-table` box scrolls sideways when that is wider than
   its place, as on a phone, instead of squeezing every column to a word.
-  An app's chat draws one for an agent's table (OpenUI).
+  No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's table.
 - **Pager** (`.pager`): "5 of 14" left, page numbers right as `--tap`
   squares, the current one on `--accent-soft`. New; no app pages today, maia's
   long tables are the first candidate.
-- **Stats** (`.stats > .stat`): strong-glass cells, label 12 px muted above a
+- **Stats** (`.stats > .stat`): strong-glass cells, label 13 px (12 px dense) muted above a
   1.5rem value and a sub line. maia's overview and llm-proxy's overview; the
   compact `.metric` inside a tile is home's. A tone (`.stat.ok`, `.warn`,
   `.err`) colours the value in its `-text` token, and the sub line says why,
   so the colour is never alone. `.stat.flat` is a cell on `--surface-2`
   without glass, for a panel that is glass already; `.stats.inchat` fits a
   strip into a chat bubble (tighter cells, two a row on a phone) with a
-  `.caption` spanning the row under them ("as of 09:41"). An agent's report
-  in an app's chat (OpenUI).
+  `.caption` spanning the row under them ("as of 09:41"). The tones,
+  `.flat` and `.inchat` have no app yet; an agent's chat (OpenUI) is the first
+  candidate, for an agent's report.
 - **Facts** (`dl.facts`): term and value in two columns, one on a phone.
   Lights' About, maia's run details.
 - **Schedule** (`ul.schedule`): what happens when. Each `li` is a time
@@ -511,7 +557,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   mono line: the `.path`, the `.plus` and `.minus` counts, the hunks, a link.
   `details.diffblock` folds the `pre` under that line as its summary (▸/▾),
   18rem at most, then it scrolls. An approval's preview of a diff uses the
-  same `pre.diff`. An agent's change in an app's chat (OpenUI).
+  same `pre.diff`. No app has it yet; an agent's chat (OpenUI) is the first candidate, for an agent's change.
 - **Checklist** (`.checklist`): numbered discs, done in `--ok` (✓), the
   current one accent-rimmed (`li.cur` puts its label in `--accent-text`), a
   failed one an `!` in `--err-text` on an err wash with an err rim
@@ -523,8 +569,10 @@ Each entry: what it is, how it is drawn, which app has it today.
   never alone), and `.compact` tightens the rows for a chat bubble. When a
   newer copy of the same list exists, the old one folds into
   `details.superseded`: one dashed mono line saying so, with a `.btn.link`
-  to the latest, and the old list faded inside. llm-proxy's Get started; an
-  agent's plan in an app's chat (OpenUI).
+  to the latest, and the old list faded inside. llm-proxy's Get started has
+  the plain list; its states, `li.head`, `.compact` and `details.superseded`
+  have no app yet, and an agent's chat (OpenUI) is the first candidate, for
+  an agent's plan.
 - **Stepper** (`ol.stepper`): a thing's steps on one line, a disc per step
   with its name under it, joined by a hairline. A step is done (filled in
   `--text-soft`), here (larger, in its tone — accent by default, `.ok`,
@@ -534,8 +582,22 @@ Each entry: what it is, how it is drawn, which app has it today.
   bold, and the app says which step is current without it, with
   `aria-current="step"` on the here step and the state in the list's
   accessible name, as the mockup draws it. A stepper sits on a card, like
-  the checklist, where every tone disc keeps its 3:1. An agent's change or
-  task in an app's chat (OpenUI).
+  the checklist, where every tone disc keeps its 3:1. No app has it yet; an agent's chat (OpenUI) is the first candidate, for an
+  agent's change or task.
+- **Progress** (`progress.progress`): a native `<progress value max>`, an
+  accent bar on a `--line-strong` track, a pill .5rem high, beside the words
+  that say the same ("2 140 of 6 300"), never instead of them; with no
+  value it is indeterminate, an accent stretch sliding along the track
+  (still under reduced motion). A state card's or a job's progress. New; no
+  app has it yet, a polling page's long job is the first candidate.
+- **Loading** (`.spinner`, `.htmx-indicator`, `aria-busy`): a `.spinner` is
+  a ring that turns, 1em in `currentColor`, beside words or with an
+  `aria-label`, never alone (slower under reduced motion, never still, since
+  a still one reads as stuck). `.htmx-indicator` hides it, or anything,
+  until htmx marks the request (`.htmx-request` on it or its parent). A
+  region that refreshes in place carries `aria-busy="true"` meanwhile: its
+  content stays at full strength under a progress cursor, so a poll never
+  flashes the page. New; the htmx apps' polls are the first candidates.
 - **Login** (`.login`): one strong-glass card centred on the full castle: the
   app's mark (its home icon on a hue tile), its name, a sub line, the fields,
   one primary button, and the home link under it. Lights puts the passkey
@@ -548,10 +610,14 @@ For home and lights (and any dense app on a phone):
 - Every control is at least 44 × 44 px under a coarse pointer (`--tap`), and
   a small control (a switch, a caret) sits in a 44 px box. The components
   below say how each meets it.
-- Two older controls fall short of it today: `.btn.sm` (`--tap` minus .5rem,
-  36 px on a touch screen) and `.icon-btn` (`--tap` minus .125rem, 42 px).
-  They predate this table and get the coarse-pointer bump in a later release;
-  until then a page for touch uses `.btn` and `.btn.ghost.round`.
+- Six older controls fall short of it today: `.btn.sm` (`--tap` minus .5rem,
+  36 px on a touch screen), `.icon-btn` (`--tap` minus .125rem, 42 px), the
+  `.theme-switch` buttons (2rem, 32 px), `.btn.link` (no minimum height: as
+  tall as its line), the remove button in a plain `.chips` `li` (2rem, 32
+  px) and a `.sheet-head .close` outside a sheet (only the sheet's own close
+  is bumped under a coarse pointer). They predate this table and get the
+  coarse-pointer bump together in a later release; until then a page for
+  touch uses `.btn` and `.btn.ghost.round`.
 - Nothing is reachable by hover alone: a second action on a chip or a row is
   a visible target.
 
@@ -572,6 +638,8 @@ For home and lights (and any dense app on a phone):
   | `details.diffblock` | its summary line at least `--tap` high, its head centred in it |
   | `.choice .reply` with a `textarea` | the box at least 4.5rem, its button at the box's foot |
   | `.grid-table` | no target; the box scrolls sideways under a finger |
+  | `.theme-switch` | each button 2rem (32 px): short of 44 px, in the list above; on a phone the switch lives in the app's menu |
+  | `.input` | `--tap` high; its text at least 16 px, so iOS does not zoom on focus |
 
 - **Lamp tile** (`.lamp`): at least 5.75rem tall, 16 px radius, name and
   state in the corners; on = filled with the lamp's reported colour (warm

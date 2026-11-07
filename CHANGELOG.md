@@ -42,6 +42,15 @@ without any markup change; they are listed first.
   `--t-*`), so density reaches them; their sizes move by a pixel or two.
 - Every z-index of the shell and the overlays reads a `--z-*` token; the
   values are unchanged.
+- Washes come in three named strengths, `--tint-faint` (6 %), `--tint-soft`
+  (15 %) and `--tint-strong` (22 %), plus `--tint-edge` (45 %) for a hover rim
+  and the focus ring; every wash moved to the nearest: today's column 5 → 6 %,
+  `--hue-soft` 10 → 6 %, `--accent-soft` 14 → 15 %, `--hue-wash` 16 → 15 %,
+  a dot's ring 20 → 22 %. A plain (muted) badge goes from 12 to 6 % rather
+  than 15 %, where its muted words would fall under 4.5:1 in light.
+- Titles are 700 where they were 650 (`h2`, `.tile .name`, `.metric .value`,
+  `.stat .value`, `.tg-head b`): 650 rendered semibold on a Mac and snapped to
+  bold on Windows and Linux, so they now read bold everywhere.
 
 ### Added
 
@@ -66,7 +75,12 @@ without any markup change; they are listed first.
   and hides the castle; print uses the light theme on white without the
   castle, glass, bars or sheets, the page at the paper's width, statuses and
   hues in colour.
-- Tokens: `--sheet-w`, `--track-caps`, `--info-text` and the `--z-*` stack.
+- Tokens: `--sheet-w`, `--track-caps`, `--info-text`, the `--tint-*`
+  strengths and the `--z-*` stack.
+- `castle_design::icons`: `HOME`, `MONITOR`, `SUN` and `MOON`, the home
+  link's and the theme switch's icons as inline `svg.icon` strings (and as
+  files in `assets/icons/`), so every app's bar draws the same ones; the
+  link's and the switch's markup stay the app's own.
 - Tests: `tests/contrast.rs` holds `--on-fill` on every fill it is drawn on,
   the placeholder in its field, every solid focus ring (and that `--ring`
   never shows focus alone), the progress bar on its track, `--surface-2`
@@ -74,7 +88,9 @@ without any markup change; they are listed first.
   `tests/assets.rs` holds the stacking order, the ultra-wide sidebar page,
   the docked sheet's room, the status tones, the uppercase tracking, the
   tile and lamp type scale, the iOS input size, the form states, and that
-  every mockup rule lists the same selectors as castle.css's.
+  every mockup rule lists the same selectors as castle.css's, that every
+  wash reads a `--tint-*` token, and that the crate's icons draw the
+  mockup's symbols.
 
 ### Fixed
 

@@ -114,6 +114,11 @@ fn eval(value: &str, theme: Theme, hue: f64) -> Rgba {
         let a = args(inner);
         assert_eq!(a[0], "in srgb", "only srgb mixes: {value}");
         let (first, p) = a[1].rsplit_once(' ').expect("a mix percentage");
+        // a percentage, or a --tint-* token holding one
+        let p = match call(p, "var") {
+            Some(name) => token(name),
+            None => p.to_owned(),
+        };
         let p: f64 = p.trim_end_matches('%').parse::<f64>().unwrap() / 100.0;
         let (x, y) = (eval(first, theme, hue), eval(a[2], theme, hue));
         // CSS mixes premultiplied colours, then un-premultiplies
@@ -218,22 +223,25 @@ fn text_tokens_meet_aa_on_every_surface() {
             }
         }
         // a badge: its words on its own wash (castle.css's .badge rules), over a surface or glass
-        for (text, wash, pct) in [
-            ("--ok-text", "--ok", 15),
-            ("--warn-text", "--warn", 15),
-            ("--err-text", "--err", 15),
-            ("--info-text", "--info", 15),
-            ("--muted", "--muted", 12),
-            // a .state-card's badge: its tone's words on a 15 % wash of the tone
-            ("--accent-text", "--accent", 15),
-            ("--ask-text", "--ask", 15),
+        for (text, wash) in [
+            ("--ok-text", rule_value(".badge.ok", "background")),
+            ("--warn-text", rule_value(".badge.warn", "background")),
+            ("--err-text", rule_value(".badge.err", "background")),
+            ("--info-text", rule_value(".badge.info", "background")),
+            ("--ask-text", rule_value(".badge.ask", "background")),
+            ("--muted", rule_value_opt(".badge", "background").unwrap()),
+            // a .state-card's badge: its tone's words on a soft wash of the tone
+            (
+                "--accent-text",
+                "color-mix(in srgb, var(--accent) var(--tint-soft), transparent)".to_owned(),
+            ),
         ] {
             let fg = eval(&format!("var({text})"), theme, 0.0);
-            let mix = format!("color-mix(in srgb, var({wash}) {pct}%, transparent)");
+            let mix = wash;
             for (ground, bg) in grounds(theme) {
                 let bg = eval(&mix, theme, 0.0).over(bg);
                 check.pair(
-                    &format!("{text} on a {wash} badge over {ground}"),
+                    &format!("{text} on {mix} over {ground}"),
                     theme,
                     fg,
                     bg,
@@ -407,7 +415,7 @@ fn hue_tokens_meet_aa_over_the_whole_hue_range() {
             for (ground, bg) in grounds(theme) {
                 // words in the hue: on the page, on a slot's wash, on a .badge.hue
                 let wash = at("var(--hue-wash)");
-                let badge = at("color-mix(in srgb, var(--hue-ink) 15%, transparent)").over(bg);
+                let badge = at(&rule_value(".badge.hue", "background")).over(bg);
                 let text = at("var(--hue-text)");
                 check.pair(
                     &format!("--hue-text {h} on {ground}"),

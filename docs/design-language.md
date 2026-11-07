@@ -82,8 +82,8 @@ where the fills are pale, as `--accent-contrast` is on the accent),
 | `--accent` | `#2b59c3` | `#7ea6ff` | primary button, current tab line, focus, switch on |
 | `--accent-text` | `#2450b0` | `#9dbbff` | links and accent words (AA on both backgrounds) |
 | `--accent-contrast` | `#ffffff` | `#0b1020` | text on `--accent` |
-| `--accent-soft` | `color-mix(accent 14 %)` | same | a selected row, a current sidebar item |
-| `--ring` | `0 0 0 3px color-mix(accent 45 %)` | same | focus on an input, whose border turns accent too (the ring alone is under 3:1, so a control whose only sign of focus is a ring draws a solid 2 px accent one) |
+| `--accent-soft` | `color-mix(accent, --tint-soft)` | same | a selected row, a current sidebar item |
+| `--ring` | `0 0 0 3px color-mix(accent, --tint-edge)` | same | focus on an input, whose border turns accent too (the ring alone is under 3:1, so a control whose only sign of focus is a ring draws a solid 2 px accent one) |
 
 ### Status
 
@@ -106,8 +106,22 @@ an approval's kind word.
 It is violet so it reads apart from the accent (an action) and from warn (a
 problem); `--ask` reaches 3:1 on every surface, as a bar must.
 
-Washes (a badge's background) are mixed from the vivid value:
-`color-mix(in srgb, var(--ok) 15%, transparent)`, never a literal.
+Washes (a badge's background) are mixed from the vivid value at a named
+strength: `color-mix(in srgb, var(--ok) var(--tint-soft), transparent)`,
+never a literal colour or percentage. There are three tints and one edge:
+
+| token | value | for |
+| --- | --- | --- |
+| `--tint-faint` | 6 % | a quiet fill: today's column, an automation's slot, a plain (muted) badge |
+| `--tint-soft` | 15 % | a wash under words: a badge, `--accent-soft`, a slot, a failed step |
+| `--tint-strong` | 22 % | a halo: a dot's ring, a current step's |
+| `--tint-edge` | 45 % | a rim: a tile's or stat's hover border, `--ring`, a past slot's bar |
+
+A plain badge takes faint, not soft: `--muted` words on a soft muted wash
+fall under 4.5:1 in light. The few other mixes are not tints of a colour
+over its ground: a lit lamp's glow (60 % and 35 % of the lamp's own colour),
+a danger card's rim (`--err` 50 % into `--line`) and the quiet backdrop
+(`--bg` 55 %).
 
 `--now` (`var(--err)`) draws the time grid's now line.
 
@@ -123,8 +137,8 @@ declared on `:root` and re-derived on every element whose `style` names
 | --- | --- | --- | --- |
 | `--hue-ink` | `hsl(h 60% 34%)` | `hsl(h 70% 68%)` | lines, dots, a slot's bar, a swatch (3:1) |
 | `--hue-text` | `hsl(h 55% 26%)` | `hsl(h 55% 80%)` | words in the hue (4.5:1) |
-| `--hue-wash` | `color-mix(ink 16 %, --surface)` | same | a slot's fill |
-| `--hue-soft` | `color-mix(ink 10 %, --surface)` | same | a quieter fill (an automation) |
+| `--hue-wash` | `color-mix(ink, --tint-soft, --surface)` | same | a slot's fill |
+| `--hue-soft` | `color-mix(ink, --tint-faint, --surface)` | same | a quieter fill (an automation) |
 
 The contrast holds at every hue from 0 to 359 in both themes:
 `--hue-text` reaches 4.5:1 on every surface, on `--hue-wash` and on a
@@ -159,7 +173,8 @@ wash laid over the castle; it replaces home's two non-colour tokens
   `--t-xs .8125rem`, `--t-s .875rem`, `--t-m 1rem` (body), `--t-l 1.125rem`,
   `--t-xl 1.375rem`, `--t-2xl 1.75rem`, `--t-hero clamp(1.75rem, 4vw, 2.5rem)`
   (home's title and a page's h1). Line height 1.5; headings 1.25. Weights:
-  body 400, labels 600, titles 650–700. Numbers in tables and stats use
+  body 400, labels 600, titles 700 (a 650 snaps to 700 on Windows and
+  Linux anyway, so it is 700 everywhere). Numbers in tables and stats use
   `font-variant-numeric: tabular-nums`.
 - Tracking: every small uppercase label (a section head, a sidebar head, a
   table head, a schedule's day, the time grid's head, a lamp's state, an
@@ -206,7 +221,9 @@ of a tile icon, a login mark or anything drawn in its own hue; 220 if unset),
   `Theme::from_cookie_headers` on a request, `Theme::set_cookie` for the
   response, `Theme::data_theme` and `Theme::color_scheme` for the page.
 - **One switch, one look** (home's): a pill holding three round buttons with a
-  monitor, a sun and a moon; the chosen one lifted on strong glass in accent.
+  monitor, a sun and a moon (the crate's `icons::MONITOR`, `icons::SUN` and
+  `icons::MOON`); the chosen one lifted on strong glass in accent. The
+  switch's markup and how it posts the choice stay the app's own.
   On a phone it moves into the app's menu (lights' "More", llm-proxy's user
   menu, maia's drawer foot), never into the bottom bar.
 - **One cookie for the whole castle.** The choice is kept in a cookie named
@@ -300,7 +317,8 @@ a phone still gets 44 px targets.
 
 Each entry: what it is, how it is drawn, which app has it today.
 
-- **Home link** (`.home-link`): house icon plus "Home", first in every bar,
+- **Home link** (`.home-link`): house icon (the crate's `icons::HOME`) plus
+  "Home", first in every bar,
   separated from the app's own tabs by a hairline; icon only on a phone; a
   full page load, never boosted. Every app has it but home (it is home).
   On a login page it reads "Back to the castle" under the form.
@@ -328,7 +346,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   relative`). Lights' More menu and llm-proxy's user menu.
 - **Tile** (`.tile`): the glass card you tap. Head row (icon disc, name, URL,
   dot), description, metrics strip under a hairline. Hover: strong glass,
-  accent border at 45 %, lifted 2 px. Home's cards; a room on lights' rooms
+  accent border at `--tint-edge`, lifted 2 px. Home's cards; a room on lights' rooms
   page can be one.
 - **Card** (`.card`): strong-glass panel for content; `.solid` for tables.
   `.danger` rims it with `--err` for a removal section. `.flush` drops the
@@ -359,7 +377,7 @@ Each entry: what it is, how it is drawn, which app has it today.
 - **Status dot** (`.dot`): .7rem with a 4 px wash ring; `.sm` .5rem for a
   summary line. States ok / warn / err / info / ask / unknown (muted). Home's card dots and
   header dot; lights' "not seen yet"; maia's chip dots; llm-proxy's pills.
-- **Badge** (`.badge`): 13 px (12 px dense) 600 in a pill with a 15 % wash;
+- **Badge** (`.badge`): 13 px (12 px dense) 600 in a pill on a `--tint-soft` wash (a plain one `--tint-faint`);
   ok / warn / err / info / ask / accent / muted; `.outline` for a count; `.hue` in the element's
   own hue (`--hue-text` on a wash of `--hue-ink`). One component for lights'
   badges, maia's chips and llm-proxy's pills. maia's `.chip` keeps working as
@@ -696,7 +714,8 @@ How each should look when another app needs it:
 - `docs/mockup.html`: the living mockup, updated when a component changes.
 - `src/lib.rs`: the `castle-design` crate, which compiles the two assets in
   (`castle_design::CSS`, `castle_design::CASTLE_WEBP`) and carries the theme
-  cookie helper (`castle_design::Theme`).
+  cookie helper (`castle_design::Theme`) and the shared icons
+  (`castle_design::icons`, also in `assets/icons/`).
 
 **Each app depends on the crate, pinned to a tag** (the dependency line is in
 the [README](../README.md#using-it-from-an-app)).

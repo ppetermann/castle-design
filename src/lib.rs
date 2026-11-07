@@ -10,6 +10,9 @@
 //! [`THEME_COOKIE_DOMAIN`], so a choice made in one app's switch holds in all
 //! of them. A host-only fallback is named [`THEME_LOCAL_COOKIE`], never
 //! `theme`, so the two can never be mistaken for each other.
+//!
+//! [`icons`] holds the four shared icons every app's bar draws: the home
+//! link's house and the theme switch's monitor, sun and moon.
 
 /// The shared stylesheet: tokens, base, backdrop, shell and components.
 pub const CSS: &str = include_str!("../assets/castle.css");
@@ -24,6 +27,24 @@ pub const CASTLE_WEBP_TYPE: &str = "image/webp";
 /// This crate's version, for a cache-busting query on the asset URLs
 /// (`/static/castle.css?v=0.1.3`).
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+/// The icons every app's bar shares, so the home link and the theme switch
+/// look the same everywhere. Each is a whole inline `<svg class="icon">`
+/// (24 × 24, stroked in `currentColor` by castle.css's `svg.icon`, hidden from
+/// assistive technology, so the control carries the label). The markup around
+/// them, the home link and the theme switch, stays the app's own (the design
+/// language, sections 3 and 6). The same files are in `assets/icons/` for an
+/// app that serves them.
+pub mod icons {
+    /// The home link's house: the way back to the castle.
+    pub const HOME: &str = include_str!("../assets/icons/home.svg");
+    /// The theme switch's "system" choice.
+    pub const MONITOR: &str = include_str!("../assets/icons/monitor.svg");
+    /// The theme switch's "light" choice.
+    pub const SUN: &str = include_str!("../assets/icons/sun.svg");
+    /// The theme switch's "dark" choice.
+    pub const MOON: &str = include_str!("../assets/icons/moon.svg");
+}
 
 /// The theme cookie's name.
 pub const THEME_COOKIE: &str = "theme";

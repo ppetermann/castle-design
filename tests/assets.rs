@@ -734,3 +734,54 @@ fn the_mockups_rules_list_the_sheets_selectors() {
         drift.join("\n")
     );
 }
+
+#[test]
+fn the_shared_icons_are_the_mockups() {
+    // each icon is a whole inline svg.icon, hidden from assistive technology,
+    // drawing the same shapes as the mockup's symbol, so the two never drift
+    let mockup = include_str!("../docs/mockup.html");
+    for (icon, symbol) in [
+        (castle_design::icons::HOME, "i-home"),
+        (castle_design::icons::MONITOR, "i-monitor"),
+        (castle_design::icons::SUN, "i-sun"),
+        (castle_design::icons::MOON, "i-moon"),
+    ] {
+        let open = r#"<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">"#;
+        let shapes = icon
+            .strip_prefix(open)
+            .and_then(|rest| rest.strip_suffix("</svg>"))
+            .unwrap_or_else(|| panic!("{symbol}: not a bare svg.icon: {icon}"));
+        let head = format!(r#"<symbol id="{symbol}" viewBox="0 0 24 24">"#);
+        let start = mockup.find(&head).expect("the mockup's symbol") + head.len();
+        let end = start + mockup[start..].find("</symbol>").unwrap();
+        assert_eq!(
+            shapes,
+            &mockup[start..end],
+            "{symbol} differs from the mockup"
+        );
+    }
+}
+
+#[test]
+fn every_wash_is_a_named_tint() {
+    // a colour mixed over its ground reads a --tint-* strength; the only
+    // literal percentages left are a lit lamp's glow, a danger card's rim and
+    // the quiet backdrop's wash, which are not tints of a status or the accent
+    let code = css_code();
+    let mut literal = Vec::new();
+    for (i, _) in code.match_indices("color-mix(in srgb, var(") {
+        let rest = &code[i..];
+        let arg = rest[rest.find(") ").unwrap() + 2..]
+            .split(',')
+            .next()
+            .unwrap();
+        if arg.ends_with('%') && !["35%", "50%", "55%", "60%"].contains(&arg) {
+            literal.push(rest[..rest.find(';').unwrap()].to_owned());
+        }
+    }
+    assert!(
+        literal.is_empty(),
+        "washes off the tint scale:\n{}",
+        literal.join("\n")
+    );
+}

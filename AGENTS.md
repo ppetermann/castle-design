@@ -12,7 +12,8 @@ the shared `theme` cookie helper. Apps pin it as a git dependency by tag
   or the mockup's example data.
 - **`docs/design-language.md` is the intent**; `assets/castle.css` implements
   it and `tests/assets.rs` enforces its hard rules (no
-  `prefers-color-scheme`, colours only inside custom property declarations,
+  `prefers-color-scheme`, colours only inside custom property declarations
+  (the one exception: forced-colours system colours, design-language §5),
   every `var()` declared or listed in `APP_TOKENS`). A new app-provided token
   goes in that list and in castle.css's header.
 - **`docs/mockup.html` carries its own frame-scoped copy** of the sheet

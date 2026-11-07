@@ -888,8 +888,8 @@ progress.progress:indeterminate::-moz-progress-bar { background: transparent; }
 @keyframes castle-pulse { 50% { opacity: .35; } }
 @keyframes castle-spin { to { transform: rotate(1turn); } }
 @keyframes castle-slide { from { background-position: 100% 0; } to { background-position: 0 0; } }
-/* reduced motion: nothing slides or lifts; a spinner still turns, slowly, since a still one would read as stuck */
-@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp, .htmx-indicator { transition: none; } a.tile:hover { transform: none; } .note.wait .dot, progress.progress:indeterminate { animation: none; } .spinner { animation-duration: 2.4s; } }
+/* reduced motion: nothing lifts; a spinner and an indeterminate bar still move, slowly, since a still one would read as stuck */
+@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp, .htmx-indicator { transition: none; } a.tile:hover { transform: none; } .note.wait .dot { animation: none; } progress.progress:indeterminate { animation-duration: 4.8s; } .spinner { animation-duration: 2.4s; } }
 
 /* ---------- 15. forced colours and print ---------- */
 /* forced colours (Windows high contrast): the browser paints every surface

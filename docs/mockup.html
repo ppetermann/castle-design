@@ -880,8 +880,8 @@ progress.progress:indeterminate::-moz-progress-bar { background: transparent; }
 @keyframes castle-pulse { 50% { opacity: .35; } }
 @keyframes castle-spin { to { transform: rotate(1turn); } }
 @keyframes castle-slide { from { background-position: 100% 0; } to { background-position: 0 0; } }
-/* reduced motion: nothing slides or lifts; a spinner still turns, slowly, since a still one would read as stuck */
-@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp, .htmx-indicator { transition: none; } a.tile:hover { transform: none; } .note.wait .dot, progress.progress:indeterminate { animation: none; } .spinner { animation-duration: 2.4s; } }
+/* reduced motion: nothing lifts; a spinner and an indeterminate bar still move, slowly, since a still one would read as stuck */
+@media (prefers-reduced-motion: reduce) { .tile, .switch::before, .lamp, .htmx-indicator { transition: none; } a.tile:hover { transform: none; } .note.wait .dot { animation: none; } progress.progress:indeterminate { animation-duration: 4.8s; } .spinner { animation-duration: 2.4s; } }
 </style>
 <style id="mockup-chrome">
 /* ---- the mockup page itself (not part of castle.css) ---- */
@@ -1004,17 +1004,21 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
       <div class="card solid"><h2>.card.solid</h2><p>Opaque surface: a dense table's home, where every pixel of contrast counts.</p></div>
     </div>
     <h2 class="section-h">Status</h2>
-    <div class="row-demo"><span class="dot ok"></span><span class="dot warn"></span><span class="dot err"></span><span class="dot"></span>
-      <span class="badge ok">in sync</span><span class="badge warn">battery 12%</span><span class="badge err">offline</span><span class="badge">not seen yet</span><span class="badge info">public</span><span class="badge accent">key required</span><span class="badge ok"><span class="dot"></span>connected</span></div>
+    <div class="row-demo"><span class="dot ok"></span><span class="dot warn"></span><span class="dot err"></span><span class="dot info"></span><span class="dot ask"></span><span class="dot"></span>
+      <span class="badge ok">in sync</span><span class="badge warn">battery 12%</span><span class="badge err">offline</span><span class="badge">not seen yet</span><span class="badge info">public</span><span class="badge ask">your call</span><span class="badge accent">key required</span><span class="badge ok"><span class="dot"></span>connected</span></div>
     <div class="note ok"><span class="what">Confirmed:</span><span class="why">Floor lamp is on, 40 %.</span></div>
     <div class="note warn"><span class="what">2 devices need a room.</span><span class="why">A device can be switched only once it is in a room.</span><a href="#">Put them in a room</a></div>
     <div class="note err"><span class="what">MCP · weather</span><span class="why">connection refused after 3 tries</span><a href="#">Open</a></div>
+    <div class="note info"><span class="what">Firmware 1.4 is out</span><span class="why">for 3 of your lamps; nothing changes until you update them.</span></div>
+    <div class="note ask"><span class="what">2 devices want to join.</span><span class="why">They wait until someone lets them in or turns them away.</span><a href="#">Decide</a></div>
+    <div class="row-demo"><div class="toast ok" style="position:static;transform:none">saved</div><div class="toast warn" style="position:static;transform:none">saved, but the hub is slow</div><div class="toast err" style="position:static;transform:none">not saved: offline</div><div class="toast info" style="position:static;transform:none">a newer version is out</div><div class="toast ask" style="position:static;transform:none">a device wants to join</div></div>
     <h2 class="section-h">Controls</h2>
     <div class="row-demo"><button class="btn primary">Save</button><button class="btn">Ask the device</button><button class="btn ghost">Cancel</button><button class="btn danger">Delete room</button><button class="btn link">link button</button><button class="btn sm">small</button><button class="icon-btn" title="Settings"><svg class="icon"><use href="#i-gear"/></svg></button><button class="pill-btn" aria-pressed="true">Edit</button></div>
     <div class="row-demo"><button class="switch" aria-pressed="true" aria-label="enabled"></button><button class="switch" aria-label="disabled"></button><button class="switch unknown" aria-label="unknown"></button><span class="app-lights" style="display:inline-flex;gap:.75rem"><button class="switch lamp" aria-pressed="true" aria-label="lamp on"></button></span>
       <div class="segmented"><button aria-pressed="true">On</button><button>Off</button><button>Toggle</button></div>
       <div class="segmented"><button>Auto</button><button aria-pressed="true">Light</button><button>Dark</button></div></div>
     <div class="card"><div class="fields"><label class="field">Name<input class="input" value="Desk lamp"></label><label class="field">Room<select class="input"><option>Living room</option></select></label><label class="field grow">or a new room<input class="input" placeholder="e.g. Living room"><span class="hint">What maia understands when someone says "the kitchen".</span></label><button class="btn primary">Save</button></div>
+      <div class="fields"><label class="field">Hub id<input class="input" value="hub-0c7f" disabled><span class="hint">disabled: set by the hub</span></label><label class="field">Paired since<input class="input" value="2026-03-14" readonly><span class="hint">read-only, still selectable</span></label><label class="field"><span>Room name<span class="req" aria-hidden="true">*</span></span><input class="input" value="" required aria-invalid="true" aria-describedby="rn-e"><span class="error" id="rn-e">A room needs a name.</span></label></div>
       <div class="slider"><label>Brightness <output>40 %</output></label><input type="range" value="40"></div>
       <div class="slider kelvin"><label>Colour temperature <output>2700 K</output></label><input type="range" value="30"></div></div>
     <h2 class="section-h">Hue</h2>
@@ -1177,6 +1181,21 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
         <p class="hint">a failed step is a ring in the err tone, not a fill; the steps after it stay hollow until it passes</p>
       </div>
     </div>
+    <h2 class="section-h">Progress and loading</h2>
+    <div class="grid-2" style="margin-bottom:var(--s4)">
+      <div class="card">
+        <p style="margin:0">Re-indexing photos · <span class="num">2 140 of 6 300</span></p>
+        <progress class="progress" value="2140" max="6300" aria-label="Re-indexing photos">2 140 of 6 300</progress>
+        <p style="margin:var(--s3) 0 0">Waiting for the backup to start</p>
+        <progress class="progress" aria-label="Waiting for the backup to start"></progress>
+        <p class="hint" style="margin:var(--s2) 0 0">the bar sits beside its words; with no value it slides (slowly under reduced motion)</p>
+      </div>
+      <div class="card" aria-busy="true">
+        <div class="row-demo" style="margin:0 0 var(--s2)"><button class="btn" disabled><span class="spinner" aria-hidden="true"></span>Asking the device…</button><span class="muted"><span class="spinner" aria-hidden="true"></span> refreshing</span></div>
+        <div class="row-demo htmx-request" style="margin:0"><span class="htmx-indicator muted"><span class="spinner" aria-hidden="true"></span> loading (an .htmx-indicator while htmx marks its request)</span></div>
+        <p class="hint" style="margin:var(--s2) 0 0">this card is aria-busy="true": its content stays at full strength under a progress cursor while it refreshes</p>
+      </div>
+    </div>
     <div class="card" style="margin-bottom:var(--s4)"><div class="grid-table"><table><caption>Rooms this week</caption>
         <thead><tr><th>room</th><th class="num">lamp hours</th><th class="num">avg °C</th><th>last motion</th><th>note</th></tr></thead>
         <tbody><tr><td>Living room</td><td class="num">31.5</td><td class="num">21.4</td><td>today 08:12</td><td>floor lamp left on twice</td></tr>
@@ -1230,7 +1249,7 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
       <a href="#" data-nav="lamps"><svg class="icon"><use href="#i-lamp"/></svg><span>Lamps</span></a>
       <a href="#" data-nav="devices"><svg class="icon"><use href="#i-devices"/></svg><span>Devices</span></a>
       <a href="#" data-nav="rooms"><svg class="icon"><use href="#i-rooms"/></svg><span>Rooms</span></a>
-      <a href="#" data-nav="requests"><svg class="icon"><use href="#i-requests"/></svg><span>Requests</span><span class="count">2</span></a>
+      <a href="#" data-nav="requests"><svg class="icon"><use href="#i-requests"/></svg><span>Requests</span><span class="count ask" title="2 waiting for you">2</span></a>
       <a href="#" class="more"><svg class="icon"><use href="#i-more"/></svg><span>More</span><span class="caret"></span></a>
     </nav><span class="spacer"></span>
     <div class="side"><div class="theme-switch" role="group" aria-label="Theme"><button aria-pressed="true" title="System"><svg class="icon"><use href="#i-monitor"/></svg></button><button title="Light"><svg class="icon"><use href="#i-sun"/></svg></button><button title="Dark"><svg class="icon"><use href="#i-moon"/></svg></button></div></div></header>
@@ -1458,16 +1477,16 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
     <nav aria-label="Sections">
       <ul><li><a class="nav-link" href="#" data-nav="overview"><svg class="icon"><use href="#i-overview"/></svg><span class="label">Overview</span></a></li></ul>
       <h2 class="nav-h">People</h2>
-      <ul><li><a class="nav-link" href="#" data-nav="karma"><svg class="icon"><use href="#i-karma"/></svg><span class="label">Karma v2</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-rules"/></svg><span class="label">Karma rules</span></a></li></ul>
+      <ul><li><a class="nav-link" href="#" data-nav="karma"><svg class="icon"><use href="#i-karma"/></svg><span class="label">Karma v2</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-rules"/></svg><span class="label">Karma rules</span><span class="nav-badge ask" title="2 waiting for you">2</span></a></li></ul>
       <h2 class="nav-h">Maia</h2>
       <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-mood"/></svg><span class="label">Mood</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-state"/></svg><span class="label">State</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-conv"/></svg><span class="label">Conversations</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-replay"/></svg><span class="label">Replays</span></a></li><li><a class="nav-link" href="#" data-nav="settings"><svg class="icon"><use href="#i-sliders"/></svg><span class="label">Sorter settings</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-models"/></svg><span class="label">Models</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-memory"/></svg><span class="label">Context &amp; memory</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-tools"/></svg><span class="label">Tools</span></a></li></ul>
       <h2 class="nav-h">Connections</h2>
-      <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-discord"/></svg><span class="label">Discord</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-sched"/></svg><span class="label">Scheduler</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-mcp"/></svg><span class="label">MCP servers</span><span class="nav-badge">1</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-plugins"/></svg><span class="label">Plugins</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-puppet"/></svg><span class="label">Puppet</span></a></li></ul>
+      <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-discord"/></svg><span class="label">Discord</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-sched"/></svg><span class="label">Scheduler</span><span class="nav-badge" title="1 failed">1</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-mcp"/></svg><span class="label">MCP servers</span><span class="nav-badge">1</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-plugins"/></svg><span class="label">Plugins</span></a></li><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-puppet"/></svg><span class="label">Puppet</span></a></li></ul>
       <h2 class="nav-h">Plugin panels</h2>
       <ul><li><a class="nav-link" href="#"><svg class="icon"><use href="#i-panel"/></svg><span class="label">notes</span></a></li></ul>
     </nav>
     <div class="sidenav-foot">
-      <div style="font-size:var(--t-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">Theme</div>
+      <div style="font-size:var(--t-xs);font-weight:600;letter-spacing:var(--track-caps);text-transform:uppercase;color:var(--muted)">Theme</div>
       <div class="segmented" style="align-self:stretch;display:flex"><button style="flex:1" aria-pressed="true">Auto</button><button style="flex:1">Light</button><button style="flex:1">Dark</button></div>
       <button class="btn ghost sm"><svg class="icon" style="width:1rem;height:1rem"><use href="#i-refresh"/></svg>Refresh</button>
     </div>
@@ -1610,6 +1629,37 @@ body { margin: 0; font: 14px/1.5 system-ui, sans-serif; background: light-dark(#
       <div class="actions"><button class="btn primary">Save</button><button class="btn ghost">Cancel</button><span style="flex:1"></span><button class="btn link" style="color:var(--err-text)">Delete…</button></div>
     </div></aside>
   <div class="toast ok">llama3-8b saved</div>
+</div>
+</template>
+
+<template id="s-llm-delete" data-title="llm-proxy · Delete from the panel" data-app="llm" data-density="dense" data-nav="models">
+<div class="screen app-llm" data-density="dense"><div class="backdrop quiet"></div><!--bar-->
+  <main class="page">
+    <header class="page-head"><h1>Models <span class="badge" style="vertical-align:middle">12</span></h1><div class="actions"><a class="btn primary" href="#">Add model</a></div><p class="lead">What clients put in the OpenAI model field. Each model routes to a backend; a public model needs no API key.</p></header>
+    <div class="toolbar"><input class="input" placeholder="Filter models…"><div class="segmented"><button aria-pressed="true">All</button><button>chat</button><button>tts</button><button>stt</button><button>image</button></div></div>
+    <div class="card solid"><div class="table-wrap"><table class="data stack"><thead><tr><th></th><th>model</th><th>type</th><th>access</th><th>backend</th><th>last use</th><th>enabled</th><th></th></tr></thead><tbody>
+      <tr class="hl"><td class="trail"><button class="btn link" aria-label="routes">−</button></td><td class="lead">llama3-8b<span class="sub">Llama 3 8B</span></td><td data-label="type">chat</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">gpu-vllm<span class="sub">vllm · http://gpu-box:8000</span></td><td data-label="last use" class="muted">just now</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td colspan="8" style="background:var(--surface-2)"><span class="hint" style="display:block;margin:0 0 .25rem">Routes (lower priority is preferred; weight balances within a priority)</span><ul class="chips" style="margin:0"><li><b class="muted">p0 · w1</b> gpu-vllm <span class="muted">· last use just now</span></li><li><b class="muted">p1 · w1</b> openrouter <span class="muted">· never used</span></li></ul></td></tr>
+      <tr><td class="trail"><button class="btn link" aria-label="routes">+</button></td><td class="lead">kokoro</td><td data-label="type">tts</td><td data-label="access"><span class="badge info">public</span></td><td data-label="backend">kokoro<span class="sub">custom · http://tts-box:8880</span></td><td data-label="last use" class="muted">2 minutes ago</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"><button class="btn link" aria-label="routes">+</button></td><td class="lead">claude-haiku-5-5</td><td data-label="type">chat</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">anthropic<span class="sub">openai-compatible · https://api.anthropic.com</span></td><td data-label="last use" class="muted">9 minutes ago</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"></td><td class="lead">whisper-large-v3<span class="sub">Whisper large v3 turbo</span></td><td data-label="type">stt</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend">speaches<span class="sub">custom · http://stt-box:8000</span> <span class="badge warn">type mismatch</span></td><td data-label="last use" class="muted">1 hour ago</td><td data-label="enabled"><button class="switch"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr>
+      <tr><td class="trail"></td><td class="lead">flux-dev</td><td data-label="type">image</td><td data-label="access"><span class="badge accent">key required</span></td><td data-label="backend"><span class="muted">- no route -</span></td><td data-label="last use" class="muted">never</td><td data-label="enabled"><button class="switch" aria-pressed="true"></button></td><td class="end"><button class="btn ghost sm">⋯</button></td></tr></tbody></table></div>
+      <div class="pager"><span>5 of 12 models</span><span class="pages"><a href="#">‹</a><a href="#" aria-current="page">1</a><a href="#">2</a><a href="#">3</a><a href="#">›</a></span></div></div>
+  </main>
+  <div class="scrim"></div>
+  <aside class="sheet" role="dialog" aria-labelledby="sheet-t"><div class="sheet-head"><h2 id="sheet-t">Edit model · llama3-8b</h2><button class="btn ghost round" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button></div>
+    <div class="sheet-body">
+      <label class="field" style="margin:.75rem 0">Model id<input class="input" value="llama3-8b"></label>
+      <label class="field" style="margin:0 0 .75rem">Display name<input class="input" value="Llama 3 8B"><span class="hint">optional</span></label>
+      <label class="field" style="margin:0 0 .75rem">Type<select class="input"><option>Text (chat + completions)</option></select></label>
+      <label class="field" style="margin:0 0 .75rem">Max context tokens<input class="input" value="8192"></label>
+      <label class="check"><input type="checkbox" checked> Enabled</label>
+      <label class="check"><input type="checkbox"> Public — callable without an API key</label>
+      <p class="hint">Anyone who can reach the proxy can call a public model, and such calls are not recorded in usage.</p>
+      <div class="actions"><button class="btn primary">Save</button><button class="btn ghost">Cancel</button><span style="flex:1"></span><button class="btn link" style="color:var(--err-text)">Delete…</button></div>
+    </div></aside>
+  <div class="scrim above"></div>
+  <div class="card dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-t" aria-describedby="del-d"><h2 id="del-t">Delete llama3-8b?</h2><p id="del-d">Clients asking for it get an error from now on. Its usage history stays.</p><div class="actions"><button class="btn danger">Delete</button><button class="btn ghost">Keep it</button></div></div>
 </div>
 </template>
 

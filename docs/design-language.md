@@ -114,7 +114,7 @@ never a literal colour or percentage. There are three tints and one edge:
 | --- | --- | --- |
 | `--tint-faint` | 6 % | a quiet fill: today's column, an automation's slot, a plain (muted) badge |
 | `--tint-soft` | 15 % | a wash under words: a badge, `--accent-soft`, a slot, a failed step |
-| `--tint-strong` | 22 % | a halo: a dot's ring, a current step's |
+| `--tint-strong` | 22 % | a halo: a dot's ring, a current step's halo |
 | `--tint-edge` | 45 % | a rim: a tile's or stat's hover border, `--ring`, a past slot's bar |
 
 A plain badge takes faint, not soft: `--muted` words on a soft muted wash
@@ -292,8 +292,10 @@ a phone still gets 44 px targets.
 - **Sidebar** (maia): 14.5rem of strong glass on the left; under 56rem a
   drawer behind a menu button in a 3.25rem app bar.
 - **Motion**: 0.2 s on hover lifts and 0.15 s on switches, and a wait's dot
-  pulsing (`castle-pulse`, 1.6 s); everything off under
-  `prefers-reduced-motion`.
+  pulsing (`castle-pulse`, 1.6 s), a spinner turning (`castle-spin`) and an
+  indeterminate progress bar sliding (`castle-slide`); under
+  `prefers-reduced-motion` the lifts, the switch and the pulse are off and
+  the spinner and the bar only slow down, since a still one reads as stuck.
 - **Focus**: 2 px accent outline, offset 2 px, on every focusable thing,
   and on the label of a hidden input (a pill check, a swatch, a choice);
   inside a segmented control, which clips an outline, a 2 px accent ring
@@ -606,7 +608,7 @@ Each entry: what it is, how it is drawn, which app has it today.
   accent bar on a `--line-strong` track, a pill .5rem high, beside the words
   that say the same ("2 140 of 6 300"), never instead of them; with no
   value it is indeterminate, an accent stretch sliding along the track
-  (still under reduced motion). A state card's or a job's progress. New; no
+  (slower under reduced motion, never still). A state card's or a job's progress. New; no
   app has it yet, a polling page's long job is the first candidate.
 - **Loading** (`.spinner`, `.htmx-indicator`, `aria-busy`): a `.spinner` is
   a ring that turns, 1em in `currentColor`, beside words or with an

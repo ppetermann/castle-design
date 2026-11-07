@@ -79,7 +79,7 @@ switch themselves, and the labels they carry, stay the app's:
 ```rust
 use castle_design::icons;
 
-let home = format!(r#"<a class="home-link" href="https://home.my-castle.net/">{}<span>Home</span></a>"#, icons::HOME);
+let home = format!(r#"<a class="home-link" href="https://home.example.com/">{}<span>Home</span></a>"#, icons::HOME);
 let light = format!(r#"<button name="theme" value="light" aria-label="Light" aria-pressed="false">{}</button>"#, icons::SUN);
 ```
 

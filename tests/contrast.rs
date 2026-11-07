@@ -49,18 +49,21 @@ fn contrast(a: Rgba, b: Rgba) -> f64 {
 
 /// The first declaration of a custom property in the sheet.
 fn token(name: &str) -> String {
+    token_opt(name).unwrap_or_else(|| panic!("{name} is not declared"))
+}
+
+/// The first declaration of a custom property in the sheet, if it has one.
+fn token_opt(name: &str) -> Option<String> {
     let needle = format!("{name}:");
     let mut rest = CSS;
     loop {
-        let i = rest
-            .find(&needle)
-            .unwrap_or_else(|| panic!("{name} is not declared"));
+        let i = rest.find(&needle)?;
         let before = rest[..i].chars().last();
         // a whole name: not the tail of a longer one such as --x-name
         if matches!(before, Some(c) if c.is_whitespace() || c == '{' || c == ';') {
             let value = &rest[i + needle.len()..];
             let end = value.find(';').expect("unterminated declaration");
-            return value[..end].trim().to_owned();
+            return Some(value[..end].trim().to_owned());
         }
         rest = &rest[i + needle.len()..];
     }
@@ -103,8 +106,13 @@ fn hsl(h: f64, s: f64, l: f64) -> Rgba {
 fn eval(value: &str, theme: Theme, hue: f64) -> Rgba {
     let value = value.trim();
     if let Some(name) = call(value, "var") {
-        let name = args(name)[0];
-        return eval(&token(name), theme, hue);
+        // an app-provided token the sheet leaves undeclared (--avatar-bg,
+        // --brand) reads its fallback, as it does in an app that sets neither
+        let a = args(name);
+        if a.len() == 2 && token_opt(a[0]).is_none() {
+            return eval(a[1], theme, hue);
+        }
+        return eval(&token(a[0]), theme, hue);
     }
     if let Some(inner) = call(value, "light-dark") {
         let a = args(inner);
@@ -514,7 +522,9 @@ fn rule_value_opt(selector: &str, property: &str) -> Option<String> {
 #[test]
 fn words_on_a_vivid_fill_meet_aa() {
     // --on-fill on each fill it is drawn on, read from the rules: a count and
-    // a danger button are words (4.5:1); a done step's ✓ is a mark (3:1)
+    // a danger button and an avatar's initials (on the --accent
+    // fallback, the sheet's own fill when an app sets neither --avatar-bg nor
+    // --brand) are words (4.5:1); a done step's ✓ is a mark (3:1)
     let mut check = Check(Vec::new());
     let count_ink = rule_value("nav.tabs .count", "color");
     let badge_ink = rule_value(".nav-badge", "color");
@@ -555,6 +565,18 @@ fn words_on_a_vivid_fill_meet_aa() {
                 &rule_value(".checklist .n.done", "color"),
                 rule_value(".checklist .n.done", "background"),
                 AA_LARGE_OR_LINE,
+            ),
+            (
+                "an avatar's initials on the accent",
+                &rule_value(".avatar", "color"),
+                rule_value(".avatar", "background"),
+                AA_TEXT,
+            ),
+            (
+                "a photo tile icon's initials on the accent",
+                &rule_value(".tile .tile-icon.photo", "color"),
+                rule_value(".tile .tile-icon.photo", "background"),
+                AA_TEXT,
             ),
         ] {
             let fill = eval(&fill, theme, 0.0);

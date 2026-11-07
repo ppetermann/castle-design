@@ -765,23 +765,46 @@ fn the_shared_icons_are_the_mockups() {
 #[test]
 fn every_wash_is_a_named_tint() {
     // a colour mixed over its ground reads a --tint-* strength; the only
-    // literal percentages left are a lit lamp's glow, a danger card's rim and
-    // the quiet backdrop's wash, which are not tints of a status or the accent
+    // literal percentages are the design language's three non-tint sites, each
+    // pinned to its rule: a lit lamp's glow, a danger card's rim and the quiet
+    // backdrop's wash
+    const SITES: [(&str, &str); 4] = [
+        (".lamp.on", "var(--fill) 60%"),
+        (".lamp.on", "var(--fill) 35%"),
+        (".card.danger", "var(--err) 50%"),
+        (".backdrop.quiet::after", "var(--bg) 55%"),
+    ];
     let code = css_code();
+    let mut seen = Vec::new();
     let mut literal = Vec::new();
     for (i, _) in code.match_indices("color-mix(in srgb, var(") {
         let rest = &code[i..];
-        let arg = rest[rest.find(") ").unwrap() + 2..]
+        let mix = rest["color-mix(in srgb, ".len()..]
             .split(',')
             .next()
             .unwrap();
-        if arg.ends_with('%') && !["35%", "50%", "55%", "60%"].contains(&arg) {
-            literal.push(rest[..rest.find(';').unwrap()].to_owned());
+        if !mix.ends_with('%') {
+            continue;
+        }
+        let head = &code[..i];
+        let open = head.rfind('{').unwrap();
+        let start = head[..open].rfind(['}', '\n']).map_or(0, |s| s + 1);
+        let selector = head[start..open].trim();
+        if SITES.contains(&(selector, mix)) {
+            seen.push((selector, mix));
+        } else {
+            literal.push(format!("{selector}: {}", &rest[..rest.find(';').unwrap()]));
         }
     }
     assert!(
         literal.is_empty(),
-        "washes off the tint scale:\n{}",
+        "washes off the tint scale (a non-tint site is listed by rule):\n{}",
         literal.join("\n")
     );
+    for site in SITES {
+        assert!(
+            seen.contains(&site),
+            "the non-tint wash {site:?} is gone or retuned: update the design language's tint table and this list"
+        );
+    }
 }

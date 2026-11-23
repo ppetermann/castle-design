@@ -3,6 +3,13 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
+## Unreleased
+
+### Added
+
+- `assets/ircord-castle.ircord-theme.json`: the castle look as an ircord
+  theme, light and dark (README, "The castle in ircord"). No crate change.
+
 ## 0.1.10
 
 A sweep of the design review's small findings. Pages change in a few places

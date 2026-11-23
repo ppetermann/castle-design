@@ -10,6 +10,7 @@ What is here:
 | --- | --- |
 | [`assets/castle.css`](assets/castle.css) | the shared stylesheet: tokens, base, backdrop, shell, components |
 | [`assets/castle.webp`](assets/castle.webp) | the castle picture behind every page (2400 × 1022) |
+| [`assets/ircord-castle.ircord-theme.json`](assets/ircord-castle.ircord-theme.json) | the castle look as an [ircord](https://ircord.com) theme (see below) |
 | [`docs/design-language.md`](docs/design-language.md) | the rules: tokens, themes, density, layout, components, touch |
 | [`docs/mockup.html`](docs/mockup.html) | every component drawn on example screens, phone and desktop, light and dark (one self-contained file; open it in a browser) |
 | [`src/lib.rs`](src/lib.rs) | the `castle-design` crate: the assets as compile-time constants and the theme cookie helper |
@@ -82,6 +83,45 @@ use castle_design::icons;
 let home = format!(r#"<a class="home-link" href="https://home.example.com/">{}<span>Home</span></a>"#, icons::HOME);
 let light = format!(r#"<button name="theme" value="light" aria-label="Light" aria-pressed="false">{}</button>"#, icons::SUN);
 ```
+
+## The castle in ircord
+
+`assets/ircord-castle.ircord-theme.json` is an ircord personal theme file: the
+castle's light and dark palettes as the theme's colours, and the shape tokens
+(corners, system fonts) as its CSS. It uses ircord's theme support as it is;
+nothing in either client changes.
+
+Load it in either client (needs a signed-in account; the theme then lives in
+the account and shows in both):
+
+1. Settings → Appearance → *Your themes* → **Paste theme** or **Import file**
+   (both clients), and paste the file's contents or choose it.
+2. Apply the imported *Castle*: **Apply** on the web (it runs on trial; press
+   **Keep** in the bar that appears within 20 s), **Use** on the desktop.
+   Then pick *Light* or *Dark* under Theme (or *System*): the theme carries both.
+3. Web client: **Edit** → *Background* → **Choose image**, pick
+   [`assets/castle.webp`](assets/castle.webp) and press **Save**. This is the step
+   that makes it the castle: the theme is built around the picture, and its
+   CSS blurs the panels over it. The file already carries the background
+   settings (whole app, bottom), but ircord never puts an image in a theme
+   file, so it is chosen once per account. Without it the theme is the plain
+   castle palette. ircord keeps the picture's strength above the contrast
+   floors it computes from the image, so the castle is soft behind the text.
+
+What the desktop (GPUI) client does not pick up: a theme's background image
+(it draws none at the time of writing), and any CSS beyond the plain root
+variables (colours, corners, interface scale, fonts), so the glass is web
+only. Its `--font-mono` takes effect (the first installed family after
+`ui-monospace`); `--font-ui` starts with `system-ui`, which it leaves to the
+app. The castle apps' shadows and tab styling are not part of a theme:
+ircord's own layout decides those.
+
+The colours are castle tokens where the castle has one: canvas is
+`--bg-sunken`, surface `--surface`, ink `--text`, muted `--muted`, accent
+`--accent`, and the red, orange, green, blue and purple hues are `--err`,
+`--warn`, `--ok`, `--info` and `--ask`, per mode. The overlay seed and the
+cyan, yellow and pink hues are not castle tokens; they are chosen to sit with
+them.
 
 ## Pinning and updating
 

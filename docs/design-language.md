@@ -713,6 +713,9 @@ How each should look when another app needs it:
 - `assets/castle.css`: the shared stylesheet: tokens, base, the components
   above, nothing app-specific.
 - `assets/castle.webp`: the picture.
+- `assets/ircord-castle.ircord-theme.json`: the castle look as an ircord
+  theme (README). It restates castle.css's palette as seeds, so a colour
+  change in the sheet is followed there (`tests/ircord_theme.rs` checks).
 - `docs/mockup.html`: the living mockup, updated when a component changes.
 - `src/lib.rs`: the `castle-design` crate, which compiles the two assets in
   (`castle_design::CSS`, `castle_design::CASTLE_WEBP`) and carries the theme

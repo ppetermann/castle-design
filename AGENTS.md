@@ -2,7 +2,8 @@
 
 castle-design is the shared design system of the castle's web apps (home,
 lights, maia's admin UI, llm-proxy's admin UI, the calendar): `assets/castle.css`,
-`assets/castle.webp`, the rules in `docs/design-language.md`, and a tiny
+`assets/castle.webp`, `assets/ircord-castle.ircord-theme.json` (the same
+palette as an ircord theme), the rules in `docs/design-language.md`, and a tiny
 no-dependency crate (`src/lib.rs`) that compiles the assets in and carries
 the shared `theme` cookie helper. Apps pin it as a git dependency by tag
 (README).

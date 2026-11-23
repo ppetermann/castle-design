@@ -98,16 +98,19 @@ the account and shows in both):
    file / paste** (the desktop app), and paste the file's contents or choose it.
 2. **Apply** the imported *Castle*, then pick *Light* or *Dark* under Theme
    (or *System*): the theme carries both.
-3. Optional, web client only: **Edit** → *Background* → **Choose image** and
-   pick [`assets/castle.webp`](assets/castle.webp). The file already carries
-   the settings (whole app, bottom). ircord keeps the image out of theme files
-   and raises the dim until message text stays readable, so the castle is faint.
+3. Web client: **Edit** → *Background* → **Choose image** and pick
+   [`assets/castle.webp`](assets/castle.webp). This is the step that makes it the
+   castle: the theme is built around the picture, and its CSS turns the
+   panels into frosted glass over it. The file already carries the background
+   settings (whole app, bottom), but ircord never puts an image in a theme
+   file, so it has to be chosen once per account. Without it the theme is
+   the plain castle palette.
 
-What the desktop (GPUI) client does not pick up: the background image (it
-draws no theme backgrounds), and the CSS beyond the root variables it reads
-(colours, corners, interface scale; it leaves fonts to the app). The glass
-bars, the shadows and the tab styling of the web apps are not part of a theme
-at all: ircord's own layout decides those. The colours are the castle's
+The desktop (GPUI) client does not show the picture yet; it will once its
+theme background support lands. What it does not pick up either: the CSS beyond the root variables it reads
+(colours, corners, interface scale; it leaves fonts to the app), so the
+glass panels are web only. The castle apps' shadows and tab styling are not
+part of a theme: ircord's own layout decides those. The colours are the castle's
 `--bg`, `--surface`, `--text`, `--muted` and `--accent` per theme; the other
 palette hues (cyan, yellow, pink) are not castle tokens and are chosen to sit
 with them.

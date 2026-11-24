@@ -3,7 +3,7 @@
 Each release is a tag (`vX.Y.Z`) that apps pin. While the crate is 0.x, a
 renamed or removed token, class or public item bumps the minor version.
 
-## Unreleased
+## 0.1.11
 
 ### Added
 

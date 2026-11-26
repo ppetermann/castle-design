@@ -13,3 +13,11 @@ include = ["/src", "/assets", "/README.md", "/CHANGELOG.md", "/LICENSE"]
 # and the theme cookie helper works on plain strings, so every app can use it
 # with whatever HTTP stack it already has.
 [dependencies]
+
+# Line tables keep panic backtraces at file and line without the full debug
+# info (variables and types) that nothing here reads. Dependencies carry none.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
